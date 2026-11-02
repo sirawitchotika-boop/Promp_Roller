@@ -14,7 +14,7 @@
   window.showTab = showTab;
 
   function initApp(){
-    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine", "test", "ui", "batch", "ask", "editor", "app"];
+    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine", "test", "ui", "batch", "ask", "editor", "hooktail", "app"];
     var missing = required.filter(function(f){ return !window.__EOF || !window.__EOF[f]; });
     var badge = document.getElementById("fileBadge");
 
@@ -22,6 +22,7 @@
       badge.textContent = "✓ file complete";
       badge.style.color = "var(--ok)";
       PRUI.init();
+      if(window.PRHookTail){ window.PRHookTail.seed(); PRUI.renderAll(); }
       if(window.PRBatch) window.PRBatch.init();
       if(window.PREdit) window.PREdit.init();
       bindControls();

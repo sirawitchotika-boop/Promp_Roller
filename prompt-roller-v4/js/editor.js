@@ -15,6 +15,7 @@
     h += "<option value='__scenes'>Scene presets (" + (s.presets||[]).length + ")</option>";
     h += "<option value='__overview'>Inventory overview (all 14)</option>";
     h += "<option value='__backup'>Backup / restore</option>";
+    h += "<option value='__hooktail'>Hook &amp; tail</option>";
     h += "<option value='__test'>Self-test (dev)</option>";
     sel.innerHTML = h;
     if(curVal && sel.querySelector("option[value='" + curVal + "']")) sel.value = curVal;
@@ -128,6 +129,7 @@
     if(val === "__ask"){ box.innerHTML = A.renderAskPanel(); wireSubPanels(val); return; }
     if(val === "__io"){ box.innerHTML = A.renderIOPanel(); wireSubPanels(val); return; }
     if(val === "__backup"){ box.innerHTML = A.renderBackupPanel(); wireSubPanels(val); return; }
+    if(val === "__hooktail"){ box.innerHTML = window.PRHookTail.panel(); window.PRHookTail.wire(render); return; }
     if(val === "__test"){ box.innerHTML = A.renderTestPanel(testRan); return; }
     if(val === "__scenes"){ box.innerHTML = renderScenesEditor(); return; }
     var s = window.PRUI.getState(), list = s.lists[val] || [], q = editQ[val] || "";
