@@ -1,0 +1,34 @@
+// Prompt Roller import file - hairstyles pack 1 (30 new styles)
+// Expected result: Added 30 - skipped 1 duplicate - 0 bad - 0 blocked
+#list: hairS
+her {c} hair in a french twist
+her {c} hair in a braided crown
+her {c} hair in a high top knot
+her {c} hair in a pair of space buns
+her {c} hair in a side ponytail
+her {c} hair in a bubble ponytail
+her {c} hair in a rope braid over one shoulder
+her {c} hair in a fishtail braid
+her {c} hair in a waterfall braid
+her {c} hair in a milkmaid braid
+her {c} hair in boxer braids
+her {c} hair in a low chignon
+her {c} hair in a side-swept bun
+her {c} hair in a high bun wrapped with a silk scarf
+her {c} hair twisted up in a claw clip
+her {c} hair in a loose side braid
+her {c} hair in curtain bangs
+her {c} hair in face-framing layers
+her {c} hair in a shag cut
+her {c} hair in a wolf cut
+her {c} hair in a hime cut
+her {c} hair in an asymmetrical bob
+her {c} hair in a chin-length bob
+her {c} hair in a pixie cut
+her {c} hair in a long bob
+her {c} hair in beach waves
+her {c} hair in a bouncy blowout
+her {c} hair in a slicked-back high ponytail
+her {c} hair in a braided ponytail
+her {c} hair in a half-up top knot
+1. her {c} hair in twin tails

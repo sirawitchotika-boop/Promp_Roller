@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#14161c">
+  <title>Prompt Roller v4</title>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    window.__bootErr = "";
+    window.addEventListener("error", function(e){
+      if(!window.__bootErr) window.__bootErr = (e.message||"error") + (e.filename?" in "+e.filename.split("/").pop():"") + (e.lineno?" line "+e.lineno:"");
+    }, true);
+  </script>
+</head>
+<body>
+  <header>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h1>🎲 Prompt Roller</h1>
+      <div class="spicy">Spicy items <div class="sw on" id="spicySw"></div><span id="spicyLbl">ON</span></div>
+    </div>
+    <div class="sub">Prompt Roller v4 · <span id="fileBadge" style="color:var(--dim)">loading files...</span></div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab on" id="tab-roll" onclick="showTab('roll')">Roll</div>
+    <div class="tab" id="tab-batch" onclick="showTab('batch')">Batch</div>
+    <div class="tab" id="tab-lib" onclick="showTab('lib')">Library</div>
+    <div class="tab" id="tab-edit" onclick="showTab('edit')">Edit</div>
+  </div>
+
+  <main id="view-roll">
+    <button class="big" id="btnRollAll">🎲 Roll all + copy</button>
+    <div class="row">
+      <button class="half" id="btnRollSub">👤 Subject + copy</button>
+      <button class="half" id="btnRollScn">🎬 Scene + copy</button>
+    </div>
+
+    <div class="sect">Prompt Output</div>
+    <div class="card">
+      <textarea id="out" oninput="PRUI.onOutEdit()"></textarea>
+      <div class="counter" id="counter"></div>
+      <div class="warns" id="warns" style="display:none"></div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn sm" onclick="PRUI.copy(document.getElementById('out').value, 'copied')">📋 Copy</button>
+        <button class="btn sm" onclick="PRUI.renderPrompt()">↻ Rebuild (after hand edits)</button>
+      </div>
+    </div>
+
+    <div class="sect">Scene Presets</div>
+    <div class="card">
+      <div class="row">
+        <select id="presetSel" style="flex:1"></select>
+        <button class="btn sm" id="btnApplyPreset">Apply</button>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <input type="text" id="presetName" placeholder="preset name" style="flex:1">
+        <button class="btn sm" id="btnSavePreset">💾 Save current scene</button>
+      </div>
+    </div>
+
+    <div class="sect">Subject (7 Slots)</div>
+    <div id="slotsSubject"></div>
+
+    <div class="sect">Scene (7 Slots)</div>
+    <div id="slotsScene"></div>
+  </main>
+
+  <main id="view-batch" style="display:none">
+    <div class="card">
+      <div class="row">
+        <button class="half" onclick="PRBatch.gen('all')">🎲 Rotate all (10)</button>
+      </div>
+      <div class="row">
+        <button class="half" onclick="PRBatch.gen('subject')">🎲 Subject only (10)</button>
+        <button class="btn sm" onclick="PRBatch.copyAll()">📋 Copy all 10</button>
+      </div>
+      <div class="hint">One card at a time — Prev / Copy / Next. Locked slots stay fixed in every item.</div>
+    </div>
+    <div id="batchOut"></div>
+    <div class="note" id="batchQA" style="margin:4px 2px 8px"></div>
+  </main>
+
+  <main id="view-lib" style="display:none">
+    <div class="card">
+      <div class="row">
+        <input type="text" id="libName" placeholder="name (optional)" style="flex:1">
+        <button class="btn sm" onclick="PRBatch.saveLib()">💾 Save current prompt</button>
+      </div>
+      <div class="hint">Saves the Roll tab's current slots + prompt text.</div>
+    </div>
+    <div class="card">
+      <input type="text" id="libSearch" placeholder="🔍 search saved prompts..." oninput="PRBatch.renderLib()">
+      <div id="libList" style="margin-top:10px"></div>
+    </div>
+  </main>
+
+  <main id="view-edit" style="display:none">
+    <div class="card">
+      <select id="editSel" onchange="PREdit.render()"></select>
+      <div id="editorBox" style="margin-top:12px"></div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast">copied</div>
+
+  <script src="js/data-rules.js"></script>
+  <script src="js/data-subject.js"></script>
+  <script src="js/data-scene.js"></script>
+  <script src="js/presets.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/test.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/batch.js"></script>
+  <script src="js/ask.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
