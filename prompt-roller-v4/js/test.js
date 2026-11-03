@@ -72,6 +72,27 @@
     var pImp = E.parseImport("#preset: !Night club\ncamera: Eye level view\nvenue: in a dark party room\n");
     T("import: #preset: extension parsed", pImp.presetsAdded === 1 && pImp.presets[0].x === 1 && pImp.presets[0].values.venue === "in a dark party room");
 
+    // 13. Guard tags (v4.1)
+    var gParsed = PRRoll.parseGuard("her text [G: face=rear, in=indoor]");
+    T("guard: tag parsed & stripped from text", !!(gParsed && gParsed.g.face === "rear" && gParsed.g.in === "indoor" && gParsed.text === "her text"));
+    var gPool = [{ t: "indoor item", g: { in: "indoor" } }, { t: "outdoor item", g: { in: "outdoor" } }];
+    var gOk = true;
+    for(var gi = 0; gi < 20; gi++){
+      if(PRRoll.pickGuarded(gPool, true, { in: "indoor" }).t !== "indoor item") gOk = false;
+    }
+    T("guard: filter never returns a conflicting item", gOk);
+    var gFall = [{ t: "mismatch", g: { in: "indoor" } }, { t: "free item" }];
+    var gFallOk = true;
+    for(var gj = 0; gj < 20; gj++){
+      if(PRRoll.pickGuarded(gFall, true, { in: "outdoor" }).t !== "free item") gFallOk = false;
+    }
+    T("guard: untagged fallback when all tagged mismatch", gFallOk);
+    var fence = "\u0060\u0060\u0060text\n#list: hairS\nher {c} hair in a twist\n\u0060\u0060\u0060\n";
+    var fRes = E.parseImport(fence);
+    T("import: codeblock fences skipped", fRes.added === 1 && fRes.bad === 0);
+    var badG = E.parseImport("#list: outfit\nher red dress [G: front]\n");
+    T("import: malformed guard bracket stripped", badG.added === 1 && badG.itemsByList.outfit[0].t === "her red dress" && !badG.itemsByList.outfit[0].g);
+
     return results;
   }
 

@@ -1,4 +1,4 @@
-// js/engine-roll.js - Guard Tags + Guarded Scene Roll Chain (v4.1 Phase 1+2)
+// js/engine-roll.js - Guard Tags + Guarded Scene Roll Chain (v4.1)
 (function(){
   var CHAIN = ["venue", "action", "hands", "prop", "light", "depth", "camera"];
 
@@ -15,6 +15,13 @@
     });
     if(!Object.keys(g).length) return null;
     return { g: g, text: s.replace(/\[G:\s*[^\]]+\]\s*$/i, "").trim() };
+  }
+  // Malformed guard brackets ([G: front], [guard: face=front]) get stripped entirely
+  // so they never leak into prompt text as junk. Returns cleaned text.
+  function stripBadGuard(text){
+    var s = String(text || "");
+    if(!/\[\s*g(?:uard)?\s*:/i.test(s)) return s;
+    return s.replace(/\[\s*g(?:uard)?\s*:[^\]]*\]/gi, "").replace(/\s{2,}/g, " ").trim();
   }
   // { face: "rear" } -> " [G: face=rear]" (export; appended AFTER any [NOTE:])
   function guardText(g){
@@ -62,7 +69,6 @@
     return rest[Math.floor(Math.random() * rest.length)];
   }
   // Locked scene slots stay fixed and donate their guards to the context.
-  // Returns { vals: slot->text, ctx: rolled guard context }.
   function rollScene(lists, allowSpicy, locked, current){
     var ctx = {}, vals = {};
     CHAIN.forEach(function(slot){
@@ -81,8 +87,8 @@
   }
 
   window.PRRoll = {
-    CHAIN: CHAIN, parseGuard: parseGuard, guardText: guardText, guardMatches: guardMatches,
-    pickGuarded: pickGuarded, ctxFromCurrent: ctxFromCurrent, rollScene: rollScene
+    CHAIN: CHAIN, parseGuard: parseGuard, stripBadGuard: stripBadGuard, guardText: guardText,
+    guardMatches: guardMatches, pickGuarded: pickGuarded, ctxFromCurrent: ctxFromCurrent, rollScene: rollScene
   };
   window.__EOF = window.__EOF || {};
   window.__EOF["engine-roll"] = true;

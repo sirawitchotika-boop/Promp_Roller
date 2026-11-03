@@ -79,6 +79,7 @@
       for(var i = 0; i < lines.length; i++){
         var line = lines[i].trim();
         if(!line || line.startsWith("//")) continue;
+        if(/^(\u0060{3,}|~~~)/.test(line)) continue;
         var mPreset = line.match(/^(!?)#presets?:\s*(.*)$/i);
         if(mPreset){
           curList = null;
@@ -152,6 +153,7 @@
         if(!clean){ bad++; continue; }
         var gr = PRRoll.parseGuard(clean);
         if(gr) clean = gr.text;
+        else clean = PRRoll.stripBadGuard(clean);
         var note = "", mNote = clean.match(/\[NOTE:\s*(.*?)\]$/i);
         if(mNote){ note = mNote[1].trim(); clean = clean.replace(/\[NOTE:\s*.*?\]$/i, "").trim(); }
         var key = curList.toLowerCase() + "::" + clean.toLowerCase().replace(/\s+/g, " ").trim();

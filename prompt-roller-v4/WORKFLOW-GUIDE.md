@@ -1,84 +1,64 @@
-# Prompt Roller v4 — คู่มือการใช้งานฉบับสมบูรณ์ (User & Workflow Guide)
+# Prompt Roller v4.1 — Complete User & Workflow Guide
 
-คู่มือการใช้งานแอปบนมือถือ (Spck Editor / Chrome) และขั้นตอนการสั่ง AI ภายนอกสร้างคำศัพท์ใหม่โดยไม่ติด Red Flag
-
----
-
-## 1. ภาพรวม 4 แท็บหลักของแอป
-
-### แท็บที่ 1: `Roll` (หน้าสุ่มและประกอบร่าง Prompt)
-- **Spicy items (ON/OFF):** สวิตช์มุมขวาบน เมื่อปิด (OFF) ระบบจะข้ามคำที่มีเครื่องหมาย `🔥` ตอนกดสุ่มทั้งหมด
-- **ปุ่มสุ่มหลัก 3 ปุ่ม:**
-  - `🎲 Roll all + copy`: สุ่มใหม่ทั้ง 14 ช่อง (ยกเว้นช่องที่ล็อกไว้) แล้วคัดลอกลงคลิปบอร์ดทันที
-  - `👤 Subject + copy`: สุ่มใหม่เฉพาะ 7 ช่องตัวละคร (หมวดฉากคงเดิม) แล้วคัดลอก
-  - `🎬 Scene + copy`: สุ่มใหม่เฉพาะ 7 ช่องฉาก (ตัวละครคงเดิม) แล้วคัดลอก
-- **กล่อง Prompt Output:**
-  - แก้ไขข้อความด้วยมือได้โดยตรง (จะเช็กคำต้องห้ามให้อัตโนมัติ)
-  - กด `📋 Copy` เพื่อคัดลอก หรือกด `↻ Rebuild` เพื่อดึงค่าจาก 14 ช่องมาประกอบใหม่หลังแก้ด้วยมือ
-- **Scene Presets:**
-  - เลือกชุดฉากจาก Dropdown แล้วกด `Apply` เพื่อเติมทั้ง 7 ช่องของหมวด Scene พร้อมกัน
-  - พิมพ์ชื่อในช่อง `preset name` แล้วกด `💾 Save current scene` เพื่อบันทึก 7 ช่องฉากปัจจุบันเก็บเป็นพรีเซ็ตใหม่
-- **การใช้งานแต่ละสล็อต (14 ช่อง):**
-  - **แตะที่ข้อความในสล็อต:** เปิดกล่องให้พิมพ์หรือวางข้อความเฉพาะกิจ (เมื่อตกลงจะขึ้นป้าย `CUSTOM` สีม่วง ถ้าลบข้อความออกจนว่างแล้วกดตกลง ช่องนั้นจะว่าง `- empty -`)
-  - **ปุ่ม `Lock` / `LOCKED`:** กดเพื่อล็อกไม่ให้สล็อตนั้นเปลี่ยนค่าตอนกดสุ่มรวม
-  - **ปุ่ม `🎲` ท้ายแถว:** สุ่มเฉพาะช่องนั้นช่องเดียวใหม่ทันที
+Mobile app manual (Spck Editor / Chrome) and the external-AI vocabulary workflow that never triggers red flags.
 
 ---
 
-### แท็บที่ 2: `Batch` (สุ่มชุดใหญ่ 10 Prompts พร้อมกัน)
-- **ปุ่ม `🎲 Rotate all (10)`:** สุ่ม Prompt ออกมา 10 ชุดรวด โดยรับประกันว่า **สีผม, ทรงผม, และสีตา จะไม่ซ้ำกันเลยในเซ็ต**
-- **ปุ่ม `🎲 Subject only (10)`:** ล็อกฉากปัจจุบันไว้ แล้วสุ่มเปลี่ยนเฉพาะตัวละคร 10 แบบ
-- **การดูและคัดลอก:**
-  - ดูทีละการ์ด (`#1 / 10`) กด `◀ Prev` และ `Next ▶` เพื่อเลื่อนดู
-  - แตะที่ข้อความเพื่อกางอ่านเต็มๆ หรือกด `📋 Copy #N` เพื่อคัดลอกเฉพาะใบนั้น
-  - กด `📋 Copy all 10` ด้านบนเพื่อคัดลอกทั้ง 10 ข้อเรียงหมายเลขไปวางใช้งานรวดเดียว
-  - ด้านล่างสุดมีบรรทัด QA สรุปให้ทันทีว่าใบไหนมีคำเตือนบ้าง
+## 1. The 4 Main Tabs
+
+### Tab 1: `Roll` (random prompt assembly)
+- **Spicy items (ON/OFF):** switch at top right. OFF = all fire-marked items are skipped in every roll.
+- **3 main roll buttons:**
+  - `Roll all + copy`: rerolls all 14 slots (locked slots stay) and copies the prompt.
+  - `Subject + copy`: rerolls only the 7 character slots, scene stays.
+  - `Scene + copy`: rerolls only the 7 scene slots — these roll as a **guard chain** (venue first, the rest follow its context), so combos stay coherent.
+- **Prompt Output box:**
+  - Hand-edit freely (banned words are auto-checked).
+  - `Copy` to copy, or `Rebuild` to reassemble from the 14 slots after hand edits.
+- **Scene Presets:** pick a preset from the dropdown and `Apply` to fill all 7 scene slots at once. Type a name and `Save current scene` to store the current scene as a new preset.
+- **Using the 14 slots:**
+  - **Tap a slot's text:** opens a box to type or paste custom text (shows a purple `CUSTOM` badge; empty + confirm = slot cleared).
+  - **`Lock` / `LOCKED`:** freezes that slot during rolls. Locked scene slots also feed their guard tags into the chain.
+  - **`dice` button:** rerolls that single slot (guard-aware for scene slots and outfit).
+
+### Tab 2: `Batch` (10 prompts at once)
+- `Rotate all (10)`: 10 prompts, guaranteed unique hair color, hairstyle and eye color per set. Every card rolls its own coherent guard chain.
+- `Subject only (10)`: keeps the current scene, rerolls only the characters.
+- Browse cards with `Prev / Next`, tap text to expand, `Copy #N` per card or `Copy all 10` for the whole set. The QA line at the bottom lists which cards carry warnings.
+
+### Tab 3: `Library` (saved favorites)
+- Save the current Roll-tab prompt with a name, search by name or text, `Copy`, `Load` back into the Roll tab, or delete.
+
+### Tab 4: `Edit` (vocabulary & system tools)
+Dropdown options:
+1. **14 vocabulary lists:** live item counts in the dropdown. Search filters (first 50 shown). Tap an item to expand and read its yellow note and `[G:]` guard line. `+ Add item` (leading `!` = spicy, `*` = verified, trailing `[G: in=indoor]` = guard). `Clear all` wipes the list (with confirm).
+2. **Import / Export (text):**
+   - Import: paste lines into the box, or `Import file` to load a .txt first. `Import lines` parses everything (auto-detect mode reads `#list:` headers).
+   - Export: `Download .txt` — one tap, auto date-time filename, never collides.
+   - `Clear box` wipes the paste box in one tap. `Clear list` empties the slot picked in the dropdown.
+3. **Ask AI (request builder):** pick a slot, count, optional theme -> `Copy request` -> paste into ChatGPT / Claude / any AI -> copy the answer codeblock back -> paste into box 2 -> `Import answer`. The request now teaches the AI to write `[G:]` guard tags itself.
+4. **Scene presets:** view, Apply, or delete presets.
+5. **Inventory overview:** totals per slot — items, verified, spicy — with jump-to-edit buttons.
+6. **Backup / restore:** download the full state as .json, restore from a file, or factory reset. A partial JSON containing only `lists` merges safely (everything else untouched).
+7. **Hook & tail:** edit the fixed head/tail lines of every prompt. Saved in state, survives updates and backups.
+8. **Self-test (dev):** one tap runs the 25-check suite on throwaway data.
 
 ---
 
-### แท็บที่ 3: `Library` (คลังเก็บ Prompt ตัวโปรด)
-- เมื่อสุ่มได้ Prompt ที่ถูกใจในหน้า Roll ให้สลับมาแท็บ **Library**
-- ตั้งชื่อ (หรือเว้นว่างให้รันเลข) แล้วกด `💾 Save current prompt`
-- ในรายการด้านล่าง:
-  - พิมพ์ค้นหาตามชื่อหรือคำใน Prompt ได้ทันที
-  - กด `📋` เพื่อคัดลอกข้อความ
-  - กด `↩` เพื่อโหลดทั้ง 14 สล็อตของใบนั้นกลับไปที่หน้า Roll เพื่อปรับแต่งต่อ
-  - กด `✕` เพื่อลบออกจากคลัง
+## 2. Guard Tags (v4.1) — how the app avoids nonsense combos
+
+- An item can end with a guard tag: `[G: in=indoor]`, `[G: face=front]`, `[G: in=outdoor, day=day]`.
+- Meaning: "this item only fits that situation." The roll chain reads the tags and never mixes conflicting items (no more office outfit at the beach, no ribbon top with a rear camera).
+- **Untagged = fits anywhere.** When in doubt, leave an item untagged — a missing tag is safe, a wrong tag hides a good item.
+- Keys in use: `in` (indoor/outdoor), `day` (day/night), `face` (front/rear). More can be added later without code changes.
+- Tags are visible as yellow `[G: ...]` lines in the Edit tab for easy review.
 
 ---
 
-### แท็บที่ 4: `Edit` (ศูนย์ควบคุมคลังคำศัพท์และเครื่องมือระบบ)
-เมื่อแตะ Dropdown ด้านบนของแท็บ Edit จะมีเมนูให้เลือกดังนี้:
+## 3. Iron rules for keeping this project red-flag free
 
-1. **หมวดคำศัพท์ทั้ง 14 หมวด (`Body tier (10)` ... `Depth (8)`):**
-   - ตัวเลขในวงเล็บบอกจำนวนคำที่มีอยู่จริงในคลังตอนนี้
-   - พิมพ์ในช่อง `🔍 search this list...` เพื่อกรองหาคำ (แสดงสูงสุด 50 รายการแรกเพื่อความลื่นไหล)
-   - แตะข้อความเพื่อกางดูคำเต็มและอ่าน Note สีเหลือง หรือกด `✕` เพื่อลบคำนั้นทิ้ง
-   - พิมพ์คำใหม่ด้านล่างแล้วกด `+ Add item` (ใส่ `!` นำหน้าถ้าเป็นคำ Spicy, ใส่ `*` ถ้าเป็นคำที่เทสผ่านแล้ว)
-   - กดปุ่มสีแดง `Clear all (N)` เพื่อล้างคำในหมวดนั้นทั้งหมดในคลิกเดียว (มีกล่องยืนยันบอกจำนวนจริงก่อนลบ)
-2. **`Import / Export (text)`:**
-   - **วิธีเพิ่มคำเข้าหมวดเดียวแบบเร็ว:** เลือกชื่อหมวดใน Dropdown (เช่น `Outfit`) แล้ววางรายการชุดเพียวๆ บรรทัดละชุด กด `📥 Import lines` ได้เลยโดยไม่ต้องพิมพ์ `#list:`
-   - **วิธีเพิ่มหลายหมวดพร้อมกัน:** ตั้ง Dropdown เป็น `Auto-detect (#list: header)` แล้ววางข้อความที่มี `#list: <ชื่อหมวด>` คั่นแต่ละส่วน
-   - **ปุ่ม `🗑️ Clear list`:** ล้างข้อมูลเฉพาะหมวดที่เลือกใน Dropdown ทันที
-3. **`Ask AI (request builder)` (ขอชิ้นส่วนจาก AI ภายนอก):**
-   - เลือกหมวดที่อยากได้ (เช่น `Outfit`, `Camera`, `Hairstyle`)
-   - เลือกจำนวน (`10`, `30`, `50`) และพิมพ์ธีมเสริมในช่อง `optional theme` ได้ตามชอบ (เช่น `cyberpunk`, `beach`, `office`)
-   - กด `📋 Copy request` -> นำไปวางใน ChatGPT, Claude หรือ Open-Source AI
-   - ก๊อบปี้ Codeblock ที่ AI ตอบกลับมา มาวางในช่อง **2. Paste the answer here** แล้วกด `⬇ Import answer` จบในที่เดียว!
-4. **`Scene presets (10)`:** ดูรายละเอียดของแต่ละ Preset กด `Apply` หรือกด `✕` เพื่อลบอันที่ไม่ใช้
-5. **`Inventory overview (all 14)`:** ตารางสรุปยอดรวมทั้งแอป ว่าแต่ละหมวดมีกี่คำ เป็นคำ Verified (`★`) กี่คำ และคำ Spicy (`🔥`) กี่คำ พร้อมปุ่ม `Edit` กดข้ามไปหมวดนั้นได้ทันที
-6. **`Backup / restore`:**
-   - กด `⬇ Download backup (.json)` เพื่อเซฟข้อมูลทั้งหมดเก็บไว้ในโฟลเดอร์ Downloads ของมือถือ (ป้องกันข้อมูลหายเวลาล้างแคชเบราว์เซอร์)
-   - กด `📂 Choose backup file` เพื่อกู้คืนข้อมูลจากไฟล์ `.json`
-   - กด `↺ Restore all factory defaults` เพื่อรีเซ็ตแอปกลับเป็นค่าเริ่มต้นจากโรงงาน
-7. **`Self-test (dev)`:** กด `▶ Run all tests` เพื่อรันชุดทดสอบความถูกต้องของระบบ 15 ข้อ (ทำงานบนข้อมูลจำลอง ไม่กระทบข้อมูลจริง)
-
----
-
-## 2. กฎเหล็กการดูแลโปรเจกต์ไม่ให้ติด Red Flag เวลาให้ AI แก้โค้ด
-
-1. **ห้ามนำคำศัพท์แนวผู้ใหญ่ (NSFW) ไปเขียนฝังในไฟล์ `.js` ในโฟลเดอร์ `js/` เด็ดขาด:**
-   - ปล่อยให้ไฟล์ `js/data-subject.js` และ `js/data-scene.js` มีเฉพาะคำศัพท์มาตรฐานที่สะอาดแบบนี้เสมอ
-2. **เก็บคำศัพท์ส่วนตัวไว้ในแอปผ่านการ Import + Backup JSON เท่านั้น:**
-   - เวลาเพิ่มคำศัพท์แซ่บๆ จาก Open-Source AI ให้เพิ่มผ่านหน้าเว็บ (`Import / Export` หรือ `Ask AI`) แล้วกด `⬇ Download backup (.json)` เก็บไว้ในมือถือ
-   - เมื่อไหร่ที่ต้องการให้ Gemini, Claude หรือ AI ตัวไหนช่วยอัปเกรดฟีเจอร์หรือแก้บั๊กของแอป คุณสามารถส่งไฟล์โค้ด `.html / .css / .js` ทั้งชุดให้ AI อ่านได้ทันที 100% โดยไม่มีวันโดนระบบ Safety บล็อกอีกต่อไป!
+1. **Never embed adult (NSFW) vocabulary inside the `.js` files in `js/`:**
+   - `js/data-subject.js` and `js/data-scene.js` always contain only clean, standard vocabulary.
+2. **Private vocabulary lives in the app only, via Import + JSON backup:**
+   - Add spicy items through the web app (Import / Export or Ask AI), then `Download backup (.json)` to keep a copy on your phone.
+   - When you need Gemini, Claude, or any AI to upgrade features or fix bugs, you can share the full `.html / .css / .js` code set with 100% safety — no safety-system blocks, ever.
