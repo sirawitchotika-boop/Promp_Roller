@@ -4,7 +4,7 @@ Mobile app manual (Spck Editor / Chrome) and the external-AI vocabulary workflow
 
 ---
 
-## 1. The 4 Main Tabs
+## 1. The 3 Main Tabs
 
 ### Tab 1: `Roll` (random prompt assembly)
 - **Spicy items (ON/OFF):** switch at top right. OFF = all fire-marked items are skipped in every roll.
@@ -26,22 +26,18 @@ Mobile app manual (Spck Editor / Chrome) and the external-AI vocabulary workflow
 - `Subject only (10)`: keeps the current scene, rerolls only the characters.
 - Browse cards with `Prev / Next`, tap text to expand, `Copy #N` per card or `Copy all 10` for the whole set. The QA line at the bottom lists which cards carry warnings.
 
-### Tab 3: `Library` (saved favorites)
-- Save the current Roll-tab prompt with a name, search by name or text, `Copy`, `Load` back into the Roll tab, or delete.
-
-### Tab 4: `Edit` (vocabulary & system tools)
+### Tab 3: `Edit` (vocabulary & system tools)
 Dropdown options:
-1. **14 vocabulary lists:** live item counts in the dropdown. Search filters (first 50 shown). Tap an item to expand and read its yellow note and `[G:]` guard line. `+ Add item` (leading `!` = spicy, `*` = verified, trailing `[G: in=indoor]` = guard). `Clear all` wipes the list (with confirm).
-2. **Import / Export (text):**
-   - Import: paste lines into the box, or `Import file` to load a .txt first. `Import lines` parses everything (auto-detect mode reads `#list:` headers).
-   - Export: `Download .txt` — one tap, auto date-time filename, never collides.
-   - `Clear box` wipes the paste box in one tap. `Clear list` empties the slot picked in the dropdown.
-3. **Ask AI (request builder):** pick a slot, count, optional theme -> `Copy request` -> paste into ChatGPT / Claude / any AI -> copy the answer codeblock back -> paste into box 2 -> `Import answer`. The request now teaches the AI to write `[G:]` guard tags itself.
-4. **Scene presets:** view, Apply, or delete presets.
-5. **Inventory overview:** totals per slot — items, verified, spicy — with jump-to-edit buttons.
-6. **Backup / restore:** download the full state as .json, restore from a file, or factory reset. A partial JSON containing only `lists` merges safely (everything else untouched).
-7. **Hook & tail:** edit the fixed head/tail lines of every prompt. Saved in state, survives updates and backups.
-8. **Self-test (dev):** one tap runs the 25-check suite on throwaway data.
+1. **14 vocabulary lists:** live item counts in the dropdown. Search filters (first 50 shown). Tap an item to expand and read its blue `[G:]` guard line and yellow note. `+ Add item` (leading `!` = spicy, `*` = verified, trailing `[G: in=indoor]` = guard). `Clear all` wipes the list (with confirm).
+2. **Exchange (export / Ask AI / import):** ONE screen for the whole AI round trip, sharing one slot dropdown:
+   - **Export:** `Copy slot` to clipboard, or `Download .txt` with an auto date-time filename. Auto-detect = all 14 slots + presets.
+   - **Ask AI:** pick count, optional theme, spicy checkbox → `Copy request` → paste into ChatGPT / Claude / any AI. The request teaches the AI to write `[G:]` guard tags itself. (Needs a specific slot, not Auto-detect.)
+   - **Import:** paste the AI answer codeblock (or any `#list:` text) into the box, or `Import file` to load a .txt first. `Import lines` parses everything. `Clear box` wipes the box in one tap.
+3. **Scene presets:** view, Apply, or delete presets.
+4. **Inventory overview:** totals per slot — items, verified, spicy — with jump-to-edit buttons.
+5. **Backup / restore:** download the full state as .json, restore from a file, or factory reset. A partial JSON containing only `lists` merges safely (everything else untouched).
+6. **Hook & tail:** edit the fixed head/tail lines of every prompt. Saved in state, survives updates and backups.
+7. **Self-test (dev):** one tap runs the 25-check suite on throwaway data.
 
 ---
 
@@ -51,7 +47,7 @@ Dropdown options:
 - Meaning: "this item only fits that situation." The roll chain reads the tags and never mixes conflicting items (no more office outfit at the beach, no ribbon top with a rear camera).
 - **Untagged = fits anywhere.** When in doubt, leave an item untagged — a missing tag is safe, a wrong tag hides a good item.
 - Keys in use: `in` (indoor/outdoor), `day` (day/night), `face` (front/rear). More can be added later without code changes.
-- Tags are visible as yellow `[G: ...]` lines in the Edit tab for easy review.
+- Tags are visible as blue `[G: ...]` lines in the Edit tab for easy review.
 
 ---
 
@@ -60,5 +56,5 @@ Dropdown options:
 1. **Never embed adult (NSFW) vocabulary inside the `.js` files in `js/`:**
    - `js/data-subject.js` and `js/data-scene.js` always contain only clean, standard vocabulary.
 2. **Private vocabulary lives in the app only, via Import + JSON backup:**
-   - Add spicy items through the web app (Import / Export or Ask AI), then `Download backup (.json)` to keep a copy on your phone.
+   - Add spicy items through the web app (Exchange panel), then `Download backup (.json)` to keep a copy on your phone.
    - When you need Gemini, Claude, or any AI to upgrade features or fix bugs, you can share the full `.html / .css / .js` code set with 100% safety — no safety-system blocks, ever.

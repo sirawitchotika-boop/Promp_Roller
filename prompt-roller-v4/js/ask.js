@@ -1,4 +1,4 @@
-// js/ask.js - Ask AI Builder, Inventory, Import/Export, Backup & Self-Test Panels
+// js/ask.js - Exchange Panel (Export / Ask AI / Import), Inventory, Backup & Self-Test Panels
 (function(){
   var E = window.PREngine;
   var R = window.PR_RULES;
@@ -47,6 +47,7 @@
     if(spicy) lines.push("- Start spicy items with ! at the front of the line");
     else lines.push("- All items are fully clothed everyday content, no explicit content");
     lines.push("- End an item with a guard tag when it only fits one situation: [G: in=indoor] or [G: in=outdoor, day=day] or [G: face=front] / [G: face=rear]. Items that fit anywhere get no tag.");
+    lines.push("- If a file is attached OR a #list: block is pasted in this message, it lists all my current items. Write only NEW items - none may duplicate or closely match that list.");
     lines.push("- Output ONLY one codeblock with all " + n + " lines, no explanations before or after");
     lines.push("- The first line inside the codeblock must be exactly: #list: " + slot);
     lines.push("");
@@ -68,36 +69,26 @@
     return lines.join("\n");
   }
 
-  function renderAskPanel(){
-    var h = "<div class='hint'>Build a request for any external AI (ChatGPT, Claude, Open-Source AI). Carries our format rules, banned words, and 3 examples from your list.</div>";
-    h += "<div class='sect' style='margin-top:8px'>1. Build the request</div>";
-    h += "<div class='row'><select id='askSlotSel' style='flex:1'>" + slotOptionsHTML(false) + "</select></div>";
+  // ONE panel: export -> request -> answer import, all sharing one slot dropdown
+  function renderExchangePanel(){
+    var h = "<div class='hint'>One screen for the AI round trip: export a slot, build the request, paste the answer back. Auto-detect = all 14 slots + presets.</div>";
+    h += "<div class='row'><select id='exSlotSel' style='flex:1'>" + slotOptionsHTML(true) + "</select></div>";
+    h += "<div class='sect' style='margin-top:8px'>Export</div>";
+    h += "<div class='row'><button class='btn sm' id='btnExCopySlot'>📋 Copy slot</button>";
+    h += "<button class='btn sm' id='btnExDownload' style='background:var(--acc)'>📤 Download .txt</button></div>";
+    h += "<div class='sect' style='margin-top:12px'>Ask AI</div>";
     h += "<div class='row'>";
-    h += "<select id='askCountSel' style='width:95px;flex:none'><option value='10'>10 items</option><option value='30' selected>30 items</option><option value='50'>50 items</option></select>";
-    h += "<input type='text' id='askThemeIn' placeholder='optional theme (e.g. cyberpunk, office)' style='flex:1'></div>";
-    h += "<div class='row' style='align-items:center'><label class='spicy' style='flex:1'><input type='checkbox' id='askSpicyChk' checked> include spicy (!)</label>";
-    h += "<button class='btn sm' id='btnCopyAskReq' style='background:var(--acc)'>📋 Copy request</button></div>";
-    h += "<div class='sect' style='margin-top:12px'>2. Paste the answer here</div>";
-    h += "<textarea id='askAnswerIn' placeholder='paste the AI answer codeblock here' style='min-height:110px'></textarea>";
-    h += "<div class='row' style='margin-top:8px'><button class='btn sm' id='btnImportAskAns'>⬇ Import answer</button>";
-    h += "<button class='btn sm' id='btnClearAskAns'>✕ Clear</button></div><div id='askImportOut' class='hint'></div>";
-    return h;
-  }
-
-  function renderIOPanel(){
-    var h = "<div class='hint'>Import: paste lines or load a .txt file. Export: one-tap download with an auto date-time file name.</div>";
-    h += "<div class='row'><select id='ioSlotSel' style='flex:1'>" + slotOptionsHTML(true) + "</select>";
-    h += "<button class='btn sm danger' id='btnIoClearSlot'>🗑️ Clear list</button></div>";
-    h += "<div class='sect' style='margin-top:8px'>Import</div>";
-    h += "<textarea id='ioBox' placeholder='paste items here, or load a file below\n#list: light\nwarm ceiling lamp glow [G: in=indoor, day=night]\n!spicy item' style='min-height:120px'></textarea>";
-    h += "<div class='row' style='margin-top:8px'><button class='btn sm' id='btnIoImport'>📥 Import lines</button>";
-    h += "<button class='btn sm' id='btnIoPickFile'>📂 Import file</button>";
-    h += "<button class='btn sm' id='btnIoClearBox'>✕ Clear box</button>";
-    h += "<input type='file' id='fileIoIn' style='display:none' accept='.txt,.md'></div>";
-    h += "<div id='ioOut' class='hint'></div>";
-    h += "<div class='sect' style='margin-top:12px'>Export</div>";
-    h += "<div class='hint'>Exports what the dropdown picks: one slot, or everything (all 14 slots + presets) on Auto-detect.</div>";
-    h += "<div class='row' style='margin-top:6px'><button class='btn sm' id='btnIoDownload' style='background:var(--acc)'>📤 Download .txt</button></div>";
+    h += "<select id='exCountSel' style='width:95px;flex:none'><option value='10'>10 items</option><option value='30' selected>30 items</option><option value='50'>50 items</option></select>";
+    h += "<input type='text' id='exThemeIn' placeholder='optional theme (e.g. cyberpunk, office)' style='flex:1'></div>";
+    h += "<div class='row' style='align-items:center'><label class='spicy' style='flex:1'><input type='checkbox' id='exSpicyChk' checked> include spicy (!)</label>";
+    h += "<button class='btn sm' id='btnExCopyReq'>📋 Copy request</button></div>";
+    h += "<div class='sect' style='margin-top:12px'>Import</div>";
+    h += "<textarea id='exBox' placeholder='paste items or an AI answer codeblock here\n#list: light\nwarm ceiling lamp glow [G: in=indoor, day=night]\n!spicy item' style='min-height:120px'></textarea>";
+    h += "<div class='row' style='margin-top:8px'><button class='btn sm' id='btnExImport' style='background:var(--acc)'>📥 Import lines</button>";
+    h += "<button class='btn sm' id='btnExPickFile'>📂 Import file</button>";
+    h += "<button class='btn sm' id='btnExClearBox'>✕ Clear box</button>";
+    h += "<input type='file' id='fileExIn' style='display:none' accept='.txt,.md'></div>";
+    h += "<div id='exOut' class='hint'></div>";
     return h;
   }
 
@@ -140,7 +131,7 @@
 
   window.PRAsk = {
     SLOT_NAMES: SLOT_NAMES, slotOptionsHTML: slotOptionsHTML, buildAskRequest: buildAskRequest,
-    renderAskPanel: renderAskPanel, renderIOPanel: renderIOPanel,
+    renderExchangePanel: renderExchangePanel,
     renderBackupPanel: renderBackupPanel, renderTestPanel: renderTestPanel,
     renderInventoryPanel: renderInventoryPanel
   };

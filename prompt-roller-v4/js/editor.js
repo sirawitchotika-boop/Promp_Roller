@@ -1,4 +1,4 @@
-// js/editor.js - Full Edit Tab Controller (Lists, Scenes, Self-Test; IO wiring lives in editor-io.js)
+// js/editor.js - Full Edit Tab Controller (Lists, Scenes, Self-Test; panel wiring lives in editor-io.js)
 (function(){
   var E = window.PREngine, A = window.PRAsk, SLOT_NAMES = A.SLOT_NAMES;
   var editQ = {}, expanded = {}, testRan = false;
@@ -10,8 +10,7 @@
     var h = E.ALL_SLOTS.map(function(slot){
       return "<option value='" + slot + "'>" + (SLOT_NAMES[slot]||slot) + " (" + (s.lists[slot]||[]).length + ")</option>";
     }).join("");
-    h += "<option value='__io'>Import / Export (text)</option>";
-    h += "<option value='__ask'>Ask AI (request builder)</option>";
+    h += "<option value='__exchange'>Exchange (export / Ask AI / import)</option>";
     h += "<option value='__scenes'>Scene presets (" + (s.presets||[]).length + ")</option>";
     h += "<option value='__overview'>Inventory overview (all 14)</option>";
     h += "<option value='__backup'>Backup / restore</option>";
@@ -20,15 +19,13 @@
     sel.innerHTML = h;
     if(curVal && sel.querySelector("option[value='" + curVal + "']")) sel.value = curVal;
   }
-  // Refresh the slot dropdowns living inside the IO / Ask panels (counts go live after import)
+  // Refresh the slot dropdown inside the Exchange panel (counts go live after import)
   function refreshPanelSels(){
-    [["ioSlotSel", true], ["askSlotSel", false]].forEach(function(pair){
-      var el = document.getElementById(pair[0]);
-      if(!el) return;
-      var cur = el.value;
-      el.innerHTML = A.slotOptionsHTML(pair[1]);
-      if(el.querySelector("option[value='" + cur + "']")) el.value = cur;
-    });
+    var el = document.getElementById("exSlotSel");
+    if(!el) return;
+    var cur = el.value;
+    el.innerHTML = A.slotOptionsHTML(true);
+    if(el.querySelector("option[value='" + cur + "']")) el.value = cur;
   }
   function itemsHTML(slot, q){
     var s = window.PRUI.getState(), list = s.lists[slot] || [];
@@ -72,8 +69,7 @@
   }
   function wireSubPanels(val){
     var s = window.PRUI.getState();
-    if(val === "__ask") PREditIO.wireAsk(s, applyImportResult);
-    else if(val === "__io") PREditIO.wireIO(s, applyImportResult, render);
+    if(val === "__exchange") PREditIO.wireExchange(s, applyImportResult, render);
     else if(val === "__backup") PREditIO.wireBackup(s, render);
   }
   function render(){
@@ -82,16 +78,14 @@
     if(!sel || !box) return;
     var val = sel.value || "body";
     if(val === "__overview"){ box.innerHTML = A.renderInventoryPanel(); return; }
-    if(val === "__ask"){ box.innerHTML = A.renderAskPanel(); wireSubPanels(val); return; }
-    if(val === "__io"){ box.innerHTML = A.renderIOPanel(); wireSubPanels(val); return; }
+    if(val === "__exchange"){ box.innerHTML = A.renderExchangePanel(); wireSubPanels(val); return; }
     if(val === "__backup"){ box.innerHTML = A.renderBackupPanel(); wireSubPanels(val); return; }
     if(val === "__hooktail"){ box.innerHTML = window.PRHookTail.panel(); window.PRHookTail.wire(render); return; }
     if(val === "__test"){ box.innerHTML = A.renderTestPanel(testRan); return; }
     if(val === "__scenes"){ box.innerHTML = renderScenesEditor(); return; }
     var s = window.PRUI.getState(), list = s.lists[val] || [], q = editQ[val] || "";
     var h = "<div class='hint'><b>" + list.length + " items</b> in [" + (SLOT_NAMES[val]||val) + "] · <span class='dot v'></span>verified · 🔥 spicy</div>";
-    h += "<div class='row' style='margin-bottom:8px'><input type='text' id='searchEdit' placeholder='🔍 search this list...' value='" + esc(q) + "' style='flex:1'>";
-    h += "<button class='btn sm' data-eact='copyList' data-slot='" + val + "'>📋 Copy</button></div>";
+    h += "<div class='row' style='margin-bottom:8px'><input type='text' id='searchEdit' placeholder='🔍 search this list...' value='" + esc(q) + "' style='flex:1'></div>";
     h += "<div id='editItemsList'>" + itemsHTML(val, q) + "</div>";
     h += "<textarea id='addSingleBox' placeholder='new item text (leading ! = spicy, * = verified, end with [G: in=indoor] to guard)' style='min-height:70px;margin-top:8px'></textarea>";
     h += "<div class='row' style='margin-top:8px'><button class='btn sm' data-eact='addSingle' data-slot='" + val + "'>+ Add item</button>";
@@ -131,8 +125,7 @@
           s.lists[slot] = (s.lists[slot] || []).concat(res.itemsByList[slot] || []);
           ta.value = ""; window.PRUI.saveStore(); window.PRUI.renderAll(); render(); window.PRUI.toast("added " + res.added);
         } else if(res.duplicates > 0) window.PRUI.toast("skipped duplicate");
-      } else if(act === "copyList") window.PRUI.copy(E.exportText(s.lists, slot), "copied " + slot);
-      else if(act === "expSc"){ expanded["sc" + idx] = !expanded["sc" + idx]; render(); }
+      } else if(act === "expSc"){ expanded["sc" + idx] = !expanded["sc" + idx]; render(); }
       else if(act === "applySc"){
         var p = s.presets[idx];
         if(p && p.values){

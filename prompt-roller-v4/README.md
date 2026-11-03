@@ -1,6 +1,6 @@
 # Prompt Roller v4.1 — Architecture & Technical Manual
 
-Mobile-first AI Image Prompt Roller, Batch Generator & Inventory Manager.
+Mobile-first AI Image Prompt Roller & Batch Generator.
 Designed for 100% offline execution on Android (Spck Editor / Chrome) and static hosting (Cloudflare Pages).
 
 ---
@@ -11,24 +11,25 @@ Rule: **Max 200 lines per file.** Plain HTML/CSS/JS, zero build step, zero exter
 
 ```text
 prompt-roller-v4/
-├── index.html            # App shell, 4-tab layout, script loader & error catcher
-├── style.css             # Dark theme (#14161c), mobile-first responsive UI
+├── index.html            # App shell, 3-tab layout, script loader & error catcher
+├── style.css             # Dark theme (#14161c), mobile-first UI, 44px touch targets
 ├── hairS-import.txt      # 30-item hairstyle test fixture (+1 duplicate) for Gate Test 4
 ├── guard-import.txt      # Guard-tag test fixture (tagged + untagged items) for v4.1 gates
 ├── README.md             # Technical architecture, dependency graph & gate test manual
-├── WORKFLOW-GUIDE.md     # User manual, Ask AI workflow & zero-red-flag maintenance guide
+├── WORKFLOW-GUIDE.md     # User manual, Exchange workflow & zero-red-flag maintenance guide
 └── js/
     ├── data-rules.js     # PR_RULES: Hook, Tail, 18 Minors words, 44 Banned words, 10 Pairing rules
     ├── data-subject.js   # SEED_SUBJECT: 7 subject slot seed arrays (body, hairC, hairS, eyes, skin, face, outfit)
     ├── data-scene.js     # SEED_SCENE: 7 scene slot seed arrays (camera, action, hands, light, prop, venue, depth)
-    ├── presets.js        # SEED_PRESETS: 6 SFW scene presets (Spicy imported via #preset:)
-    ├── engine-roll.js     # PRRoll: [G:] guard tag parse/format, guarded scene roll chain (v4.1)
+    ├── presets.js        # SEED_PRESETS: 6 SFW scene presets (Spicy presets imported via #preset:)
+    ├── engine-roll.js    # PRRoll: [G:] guard tag parse/format, guarded scene roll chain (v4.1)
     ├── engine.js         # PREngine: Prompt assembly order, {c} interpolation, validation, import/export parser
     ├── test.js           # PRTest: 25-check in-app self-test suite running on isolated mock data
     ├── ui.js             # PRUI: State store (localStorage), Roll tab rendering, Lock/Custom slot handlers
-    ├── batch.js          # PRBatch: 10-card Batch roller (unique hair/eyes) & Saved Prompt Library
-    ├── ask.js            # PRAsk: External AI Request Builder, Inventory Overview, IO & Backup sub-panels
+    ├── batch.js          # PRBatch: 10-card Batch roller (unique hair/eyes per set)
+    ├── ask.js            # PRAsk: Exchange panel (export / Ask AI request builder / import), Inventory, Backup, Self-Test panels
     ├── editor.js         # PREdit: Edit tab controller, item search/filter, single add/delete & clear list
+    ├── editor-io.js      # PREditIO: Exchange & Backup panel button wiring
     ├── hooktail.js       # PRHookTail: user-editable Hook & Tail lines (saved in state)
     └── app.js            # Watchdog verification, boot badge, tab router & top-level button bindings
 ```
@@ -37,7 +38,7 @@ prompt-roller-v4/
 
 ## 2. Script Load Order & Dependency Graph
 
-Scripts in `index.html` **MUST** load in this exact sequence. Every script registers `window.__EOF["<name>"] = true` at its final line. The watchdog in `app.js` verifies all 13 markers.
+Scripts in `index.html` **MUST** load in this exact sequence. Every script registers `window.__EOF["<name>"] = true` at its final line. The watchdog in `app.js` verifies all 14 markers.
 
 ```text
 [1. data-rules.js]   --> exports window.PR_RULES
@@ -49,20 +50,23 @@ Scripts in `index.html` **MUST** load in this exact sequence. Every script regis
        ▼
 [6. engine.js]       --> uses PR_RULES, PRRoll --> exports window.PREngine
        │
-       ├──► [7. test.js]   --> uses PREngine, PRRoll, PR_RULES --> exports window.PRTest
+       ├──► [7. test.js]     --> uses PREngine, PRRoll, PR_RULES --> exports window.PRTest
        │
        ▼
 [8. ui.js]           --> uses PREngine, PRRoll, SEED_* --> exports window.PRUI (owns State 'S')
        │
-       ├──► [9. batch.js]  --> uses PREngine, PRRoll, PRUI --> exports window.PRBatch
-       ├──► [10. ask.js]   --> uses PREngine, PR_RULES, PRUI --> exports window.PRAsk
-       └──► [11. editor.js]--> uses PREngine, PRUI, PRAsk --> exports window.PREdit
-               │
-               ▼
-[12. hooktail.js]    --> exports window.PRHookTail
+       ├──► [9. batch.js]    --> uses PREngine, PRRoll, PRUI --> exports window.PRBatch
+       ├──► [10. ask.js]     --> uses PREngine, PR_RULES, PRUI --> exports window.PRAsk
+       └──► [11. editor.js]  --> uses PREngine, PRUI, PRAsk --> exports window.PREdit
+       │        │
+       │        ▼
+       │   [12. editor-io.js] --> uses PREngine, PRAsk, PRUI --> exports window.PREditIO
        │
        ▼
-[13. app.js]         --> Watchdog checks all 13 __EOF markers --> initializes PRUI, PRBatch, PREdit
+[13. hooktail.js]    --> exports window.PRHookTail
+       │
+       ▼
+[14. app.js]         --> Watchdog checks all 14 __EOF markers --> initializes PRUI, PRBatch, PREdit
 ```
 
 ---
@@ -109,7 +113,6 @@ Scene slots roll as a linked chain in fixed order: **venue -> action -> hands ->
 - `custom` (object): Map of `{ slotId: true }` when a slot holds a hand-edited custom line.
 - `lists` (object): Map of all 14 slot arrays (`body`, `hairC`, etc.).
 - `presets` (array): Array of 7-slot scene preset objects.
-- `library` (array): Saved prompts (`{ id, ts, name, values, text }`).
 - `hook` / `tail` (string): User-edited hook and tail lines.
 
 ---
@@ -132,20 +135,22 @@ her {c} hair in a french twist
 - **Malformed guards** (`[G: front]`, `[guard: ...]`): bracket stripped entirely, item text kept clean.
 - **Codeblock fences** (``` lines from AI answers): skipped automatically.
 - **`#preset: <name>` (or `#preset: !<name>` for spicy):** Starts a 7-slot scene preset block (`camera:`, `action:`, `hands:`, `light:`, `prop:`, `venue:`, `depth:`). Also supports single-line JSON (`#preset: {"name":"...", "x":1, "values":{...}}`).
-- **Single-slot mode:** Select a target slot in the dropdown and paste plain lines directly (no `#list:` header needed).
+- **Single-slot mode:** Select a target slot in the Exchange dropdown and paste plain lines directly (no `#list:` header needed).
 - **Safety:** Any line containing a prohibited minors word is strictly blocked at parser level and never enters storage.
 
-### Hybrid IO (v4.1)
-- **Import:** paste lines into the box, or `Import file` (.txt/.md) to load a file into the box first.
-- **Export:** `Download .txt` - one tap, auto filename `prompt-roller-io-<slot|all>-YYYYMMDD-HHMMSS.txt`.
+### Exchange Panel (v4.1)
+One screen for the whole AI round trip, sharing one slot dropdown:
+- **Export:** `Copy slot` (clipboard) or `Download .txt` (auto filename `prompt-roller-io-<slot|all>-YYYYMMDD-HHMMSS.txt`). Auto-detect = all 14 slots + presets.
+- **Ask AI:** request builder for the selected slot (count / theme / spicy) — carries format rules, banned words, guard-tag instructions and 3 style examples.
+- **Import:** paste box + `Import file` (.txt/.md) + `Clear box`. Auto-detect mode reads `#list:` headers.
 - **Backup / restore:** full-state JSON download and file restore (partial JSON with only `lists` merges safely).
 
 ---
 
 ## 5. Gate Test (5-Step Verification)
 
-1. **Boot Badge:** Open `index.html` -> top header shows green `file complete`, no red banner (13 files verified).
+1. **Boot Badge:** Open `index.html` -> top header shows green `file complete`, no red banner (14 files verified).
 2. **Zero-Minors Block:** Tap any slot text on the Roll tab -> type `"a teen girl"` -> blocked immediately with alert naming `"teen"`.
 3. **Roll, Copy & Lock:** Tap `Roll all + copy` -> toast shows `rolled + copied`. Tap `Lock` on any slot -> button turns yellow `LOCKED` -> value stays fixed on next roll.
-4. **Fixture Import:** Edit tab -> Import / Export (text) -> Auto-detect -> paste `hairS-import.txt` -> `Import lines` -> result reads `Added 30 - skipped 1 duplicates - 0 bad - 0 blocked - box cleared`.
+4. **Fixture Import:** Edit tab -> Exchange -> Auto-detect -> paste `hairS-import.txt` -> `Import lines` -> result reads `Added 30 - skipped 1 duplicates - 0 bad - 0 blocked - box cleared`.
 5. **Self-Test Suite:** Edit tab -> Self-test (dev) -> `Run all tests` -> shows `25 / 25 passed` with timestamp.
