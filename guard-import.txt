@@ -1,0 +1,30 @@
+// guard-import.txt - v4.1 Phase 1 fixture (Gate 1 test)
+// 14 tagged + 4 untagged items. Tag format: [G: key=value] at end of line.
+
+#list: outfit
+*her black office blazer buttoned once at her waist [G: in=indoor]
+her denim shorts and a white cropped tank top
+!her red summer dress with a deep neckline [G: in=outdoor, day=day]
+her gray gym hoodie tied at her waist [NOTE: keep the hoodie on her hips] [G: in=indoor]
+her yellow raincoat over a black turtleneck [G: in=outdoor, day=day]
+
+#list: action
+she is stepping out of an elevator mid-stride [G: in=indoor]
+she is stretching her arms above her head on a balcony railing [G: in=outdoor]
+she is sitting on the floor tying her shoelaces
+!she is leaning back on a park bench with her eyes closed [G: in=outdoor, day=day]
+
+#list: venue
+in a quiet office lounge [G: in=indoor]
+on a rooftop balcony at sunset [G: in=outdoor, day=day]
+in a small night kitchen [G: in=indoor, day=night]
+on a rainy city sidewalk
+
+#list: light
+warm ceiling lamp glow [G: in=indoor, day=night]
+soft late afternoon sun [G: in=outdoor, day=day]
+steady neon sign light from the window [G: in=indoor, day=night]
+
+#list: camera
+eye level view
+low angle view [G: face=front]

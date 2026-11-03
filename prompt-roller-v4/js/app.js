@@ -14,7 +14,7 @@
   window.showTab = showTab;
 
   function initApp(){
-    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine", "test", "ui", "batch", "ask", "editor", "hooktail", "app"];
+    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine-roll", "engine", "test", "ui", "batch", "ask", "editor", "hooktail", "app"];
     var missing = required.filter(function(f){ return !window.__EOF || !window.__EOF[f]; });
     var badge = document.getElementById("fileBadge");
 

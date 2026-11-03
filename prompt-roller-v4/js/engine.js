@@ -1,4 +1,4 @@
-// js/engine.js - Core Engine (Build, Roll, Rules, Storage, Import/Export + #preset:)
+// js/engine.js - Core Engine (Build, Roll, Rules, Storage, Import/Export + #preset: + [G:] guard tags)
 (function(){
   var R = window.PR_RULES;
   var SLOTS_SUBJECT = ["body", "hairC", "hairS", "eyes", "skin", "face", "outfit"];
@@ -150,13 +150,15 @@
           clean = clean.substring(1).trim();
         }
         if(!clean){ bad++; continue; }
+        var gr = PRRoll.parseGuard(clean);
+        if(gr) clean = gr.text;
         var note = "", mNote = clean.match(/\[NOTE:\s*(.*?)\]$/i);
         if(mNote){ note = mNote[1].trim(); clean = clean.replace(/\[NOTE:\s*.*?\]$/i, "").trim(); }
         var key = curList.toLowerCase() + "::" + clean.toLowerCase().replace(/\s+/g, " ").trim();
         if(seen[key]){ duplicates++; continue; }
         seen[key] = true;
         if(!itemsByList[curList]) itemsByList[curList] = [];
-        itemsByList[curList].push({ t: clean, x: spicy ? 1 : undefined, v: verified ? 1 : undefined, n: note || undefined });
+        itemsByList[curList].push({ t: clean, x: spicy ? 1 : undefined, v: verified ? 1 : undefined, n: note || undefined, g: gr && gr.g ? gr.g : undefined });
         added++;
       }
       return {
@@ -170,7 +172,7 @@
       keys.forEach(function(k){
         out.push("#list: " + k);
         (lists[k] || []).forEach(function(it){
-          out.push((it.x ? "!" : "") + (it.v ? "*" : "") + it.t + (it.n ? " [NOTE: " + it.n + "]" : ""));
+          out.push((it.x ? "!" : "") + (it.v ? "*" : "") + it.t + (it.n ? " [NOTE: " + it.n + "]" : "") + (it.g ? PRRoll.guardText(it.g) : ""));
         });
         out.push("");
       });
