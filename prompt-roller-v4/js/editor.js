@@ -20,6 +20,16 @@
     sel.innerHTML = h;
     if(curVal && sel.querySelector("option[value='" + curVal + "']")) sel.value = curVal;
   }
+  // Refresh the slot dropdowns living inside the IO / Ask panels (counts go live after import)
+  function refreshPanelSels(){
+    [["ioSlotSel", true], ["askSlotSel", false]].forEach(function(pair){
+      var el = document.getElementById(pair[0]);
+      if(!el) return;
+      var cur = el.value;
+      el.innerHTML = A.slotOptionsHTML(pair[1]);
+      if(el.querySelector("option[value='" + cur + "']")) el.value = cur;
+    });
+  }
   function itemsHTML(slot, q){
     var s = window.PRUI.getState(), list = s.lists[slot] || [];
     q = (q || "").toLowerCase();
@@ -31,6 +41,7 @@
       var it = p.it, idx = p.idx, expKey = "i:" + slot + idx;
       h += "<div class='item'><div class='tx" + (expanded[expKey] ? " full" : "") + "' data-eact='exp' data-slot='" + slot + "' data-idx='" + idx + "'>";
       h += (it.v ? "<span class='dot v'></span>" : "<span class='dot t'></span>") + (it.x ? "🔥 " : "") + esc(it.t);
+      if(it.g) h += "<div class='note'>[G: " + esc(Object.keys(it.g).map(function(k){ return k + "=" + it.g[k]; }).join(", ")) + "]</div>";
       if(it.n) h += "<div class='note'>" + esc(it.n) + "</div>";
       h += "</div><button class='x' data-eact='del' data-slot='" + slot + "' data-idx='" + idx + "'>✕</button></div>";
     });
@@ -55,7 +66,7 @@
     var pStr = res.presetsAdded ? (" + " + res.presetsAdded + " presets") : "";
     var sum = "Added " + res.added + pStr + " - skipped " + res.duplicates + " duplicates - " + res.bad + " bad - " + res.blocked + " blocked";
     if(res.clean){ box.value = ""; sum += " - box cleared"; }
-    window.PRUI.saveStore(); window.PRUI.renderAll(); fillDropdown();
+    window.PRUI.saveStore(); window.PRUI.renderAll(); fillDropdown(); refreshPanelSels();
     window.PRUI.toast("added " + res.added + pStr);
     return sum;
   }
@@ -83,12 +94,29 @@
         var res = E.parseImport(box.value, slot, s.lists, s.presets);
         document.getElementById("ioOut").textContent = applyImportResult(res, box);
       };
-      document.getElementById("btnIoExport").onclick = function(){
-        var slot = document.getElementById("ioSlotSel").value || null;
-        document.getElementById("ioBox").value = E.exportText(s.lists, slot, s.presets);
-        window.PRUI.toast("exported to box");
+      document.getElementById("btnIoPickFile").onclick = function(){ document.getElementById("fileIoIn").click(); };
+      document.getElementById("fileIoIn").onchange = function(ev){
+        var f = ev.target.files[0]; if(!f) return;
+        var r = new FileReader();
+        r.onload = function(evt){
+          document.getElementById("ioBox").value = evt.target.result;
+          window.PRUI.toast("file loaded - check the box, then Import lines");
+        };
+        r.readAsText(f);
       };
-      document.getElementById("btnIoCopy").onclick = function(){ window.PRUI.copy(document.getElementById("ioBox").value, "copied text"); };
+      document.getElementById("btnIoClearBox").onclick = function(){
+        document.getElementById("ioBox").value = ""; document.getElementById("ioOut").textContent = "";
+      };
+      document.getElementById("btnIoDownload").onclick = function(){
+        var slot = document.getElementById("ioSlotSel").value || null;
+        var txt = E.exportText(s.lists, slot, s.presets);
+        var d = new Date(); function p(n){ return (n < 10 ? "0" : "") + n; }
+        var stamp = "" + d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+        var blob = new Blob([txt], { type: "text/plain" }), u = URL.createObjectURL(blob), a = document.createElement("a");
+        a.href = u; a.download = "prompt-roller-io-" + (slot || "all") + "-" + stamp + ".txt"; a.click();
+        setTimeout(function(){ URL.revokeObjectURL(u); }, 1500);
+        window.PRUI.toast("downloaded " + (slot || "all"));
+      };
       document.getElementById("btnIoClearSlot").onclick = function(){
         var slot = document.getElementById("ioSlotSel").value;
         if(!slot){ alert("Pick a specific slot from the dropdown first to clear it."); return; }
@@ -137,7 +165,7 @@
     h += "<div class='row' style='margin-bottom:8px'><input type='text' id='searchEdit' placeholder='🔍 search this list...' value='" + esc(q) + "' style='flex:1'>";
     h += "<button class='btn sm' data-eact='copyList' data-slot='" + val + "'>📋 Copy</button></div>";
     h += "<div id='editItemsList'>" + itemsHTML(val, q) + "</div>";
-    h += "<textarea id='addSingleBox' placeholder='new item text (leading ! = spicy, * = verified)' style='min-height:70px;margin-top:8px'></textarea>";
+    h += "<textarea id='addSingleBox' placeholder='new item text (leading ! = spicy, * = verified, end with [G: in=indoor] to guard)' style='min-height:70px;margin-top:8px'></textarea>";
     h += "<div class='row' style='margin-top:8px'><button class='btn sm' data-eact='addSingle' data-slot='" + val + "'>+ Add item</button>";
     h += "<button class='btn sm danger' data-eact='clearAll' data-slot='" + val + "'>Clear all (" + list.length + ")</button></div>";
     box.innerHTML = h;

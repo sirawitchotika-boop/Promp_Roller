@@ -157,8 +157,25 @@
   }
 
   function rollGroup(slots){
+    var hasChain = !!(window.PRRoll && PRRoll.rollScene);
+    var roll = null;
+    if(hasChain && slots.indexOf("venue") >= 0){
+      roll = PRRoll.rollScene(S.lists, S.spicy, S.locked, S.current);
+    }
+    var ctx = roll ? roll.ctx : (hasChain ? PRRoll.ctxFromCurrent(S.lists, S.current) : null);
     slots.forEach(function(s){
-      if(!S.locked[s]){ S.current[s] = E.pickSlot(S.lists[s], S.spicy); delete S.custom[s]; }
+      if(S.locked[s]) return;
+      if(E.SLOTS_SCENE.indexOf(s) >= 0){
+        if(roll){ S.current[s] = roll.vals[s] || ""; delete S.custom[s]; }
+        return;
+      }
+      if(s === "outfit" && hasChain){
+        var gPick = PRRoll.pickGuarded(S.lists.outfit, S.spicy, ctx);
+        S.current[s] = gPick ? gPick.t : "";
+      } else {
+        S.current[s] = E.pickSlot(S.lists[s], S.spicy);
+      }
+      delete S.custom[s];
     });
     saveStore(); renderAll(); copy(document.getElementById("out").value, "rolled + copied");
   }
@@ -174,7 +191,18 @@
         if(!actEl) return;
         var act = actEl.dataset.act, row = actEl.closest(".slot"), slot = row ? row.dataset.slot : null;
         if(act === "lock" && slot){ S.locked[slot] = !S.locked[slot]; saveStore(); renderAll(); }
-        else if(act === "roll" && slot){ S.current[slot] = E.pickSlot(S.lists[slot], S.spicy); delete S.custom[slot]; saveStore(); renderAll(); }
+        else if(act === "roll" && slot){
+          var guardAware = window.PRRoll && PRRoll.pickGuarded &&
+            (E.SLOTS_SCENE.indexOf(slot) >= 0 || slot === "outfit");
+          if(guardAware){
+            var ctx = PRRoll.ctxFromCurrent(S.lists, S.current);
+            var gPick = PRRoll.pickGuarded(S.lists[slot], S.spicy, ctx);
+            S.current[slot] = gPick ? gPick.t : "";
+          } else {
+            S.current[slot] = E.pickSlot(S.lists[slot], S.spicy);
+          }
+          delete S.custom[slot]; saveStore(); renderAll();
+        }
         else if(act === "edit" && slot){
           var val = prompt("Edit slot [" + slot + "]:\n(Empty = clear slot)", S.current[slot] || "");
           if(val !== null){

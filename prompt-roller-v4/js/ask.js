@@ -26,6 +26,16 @@
     depth: "Each item describes the background compressed far away behind her (the city skyline compressed far behind her)."
   };
 
+  // One builder for every slot dropdown (withAuto = prepend the Auto-detect option)
+  function slotOptionsHTML(withAuto){
+    var s = window.PRUI.getState();
+    var h = withAuto ? "<option value=''>Auto-detect (#list: header)</option>" : "";
+    E.ALL_SLOTS.forEach(function(slot){
+      h += "<option value='" + slot + "'>" + (SLOT_NAMES[slot]||slot) + " (" + (s.lists[slot]||[]).length + ")</option>";
+    });
+    return h;
+  }
+
   function buildAskRequest(slot, n, spicy, theme){
     var s = window.PRUI.getState(), items = (s.lists[slot] || []), lines = [];
     lines.push("You write items for an AI image prompt app (SDXL base, 2.5D semi-realistic style, young adult women 21-23).");
@@ -36,6 +46,7 @@
     lines.push("- One item per line, plain simple English, no numbering, no bullet points");
     if(spicy) lines.push("- Start spicy items with ! at the front of the line");
     else lines.push("- All items are fully clothed everyday content, no explicit content");
+    lines.push("- End an item with a guard tag when it only fits one situation: [G: in=indoor] or [G: in=outdoor, day=day] or [G: face=front] / [G: face=rear]. Items that fit anywhere get no tag.");
     lines.push("- Output ONLY one codeblock with all " + n + " lines, no explanations before or after");
     lines.push("- The first line inside the codeblock must be exactly: #list: " + slot);
     lines.push("");
@@ -50,7 +61,7 @@
     items.filter(function(it){ return ex.indexOf(it) < 0; }).slice(0, 3 - ex.length).forEach(function(it){ ex.push(it); });
     if(ex.length){
       lines.push("STYLE EXAMPLES (match this style):");
-      ex.forEach(function(it){ lines.push((it.x ? "!" : "") + it.t); });
+      ex.forEach(function(it){ lines.push((it.x ? "!" : "") + it.t + (it.g ? PRRoll.guardText(it.g) : "")); });
       lines.push("");
       lines.push("Write " + n + " new items in this exact style, different from the examples.");
     }
@@ -58,14 +69,10 @@
   }
 
   function renderAskPanel(){
-    var s = window.PRUI.getState();
     var h = "<div class='hint'>Build a request for any external AI (ChatGPT, Claude, Open-Source AI). Carries our format rules, banned words, and 3 examples from your list.</div>";
     h += "<div class='sect' style='margin-top:8px'>1. Build the request</div>";
-    h += "<div class='row'><select id='askSlotSel' style='flex:1'>";
-    E.ALL_SLOTS.forEach(function(slot){
-      h += "<option value='" + slot + "'>" + (SLOT_NAMES[slot]||slot) + " (" + (s.lists[slot]||[]).length + ")</option>";
-    });
-    h += "</select></div><div class='row'>";
+    h += "<div class='row'><select id='askSlotSel' style='flex:1'>" + slotOptionsHTML(false) + "</select></div>";
+    h += "<div class='row'>";
     h += "<select id='askCountSel' style='width:95px;flex:none'><option value='10'>10 items</option><option value='30' selected>30 items</option><option value='50'>50 items</option></select>";
     h += "<input type='text' id='askThemeIn' placeholder='optional theme (e.g. cyberpunk, office)' style='flex:1'></div>";
     h += "<div class='row' style='align-items:center'><label class='spicy' style='flex:1'><input type='checkbox' id='askSpicyChk' checked> include spicy (!)</label>";
@@ -78,18 +85,19 @@
   }
 
   function renderIOPanel(){
-    var s = window.PRUI.getState();
-    var h = "<div class='hint'>Import or Export items. Pick a specific slot to paste plain lines, or pick Auto-detect to use #list: headers.</div>";
-    h += "<div class='row'><select id='ioSlotSel' style='flex:1'><option value=''>Auto-detect (#list: header)</option>";
-    E.ALL_SLOTS.forEach(function(slot){
-      h += "<option value='" + slot + "'>" + (SLOT_NAMES[slot]||slot) + " (" + (s.lists[slot]||[]).length + ")</option>";
-    });
-    h += "</select><button class='btn sm danger' id='btnIoClearSlot'>🗑️ Clear list</button></div>";
-    h += "<textarea id='ioBox' placeholder='#list: hairS\nher {c} hair in a french twist\n!spicy item' style='min-height:120px'></textarea>";
+    var h = "<div class='hint'>Import: paste lines or load a .txt file. Export: one-tap download with an auto date-time file name.</div>";
+    h += "<div class='row'><select id='ioSlotSel' style='flex:1'>" + slotOptionsHTML(true) + "</select>";
+    h += "<button class='btn sm danger' id='btnIoClearSlot'>🗑️ Clear list</button></div>";
+    h += "<div class='sect' style='margin-top:8px'>Import</div>";
+    h += "<textarea id='ioBox' placeholder='paste items here, or load a file below\n#list: light\nwarm ceiling lamp glow [G: in=indoor, day=night]\n!spicy item' style='min-height:120px'></textarea>";
     h += "<div class='row' style='margin-top:8px'><button class='btn sm' id='btnIoImport'>📥 Import lines</button>";
-    h += "<button class='btn sm' id='btnIoExport'>📤 Export to box</button>";
-    h += "<button class='btn sm' id='btnIoCopy'>📋 Copy box</button></div>";
+    h += "<button class='btn sm' id='btnIoPickFile'>📂 Import file</button>";
+    h += "<button class='btn sm' id='btnIoClearBox'>✕ Clear box</button>";
+    h += "<input type='file' id='fileIoIn' style='display:none' accept='.txt,.md'></div>";
     h += "<div id='ioOut' class='hint'></div>";
+    h += "<div class='sect' style='margin-top:12px'>Export</div>";
+    h += "<div class='hint'>Exports what the dropdown picks: one slot, or everything (all 14 slots + presets) on Auto-detect.</div>";
+    h += "<div class='row' style='margin-top:6px'><button class='btn sm' id='btnIoDownload' style='background:var(--acc)'>📤 Download .txt</button></div>";
     return h;
   }
 
@@ -131,7 +139,7 @@
   }
 
   window.PRAsk = {
-    SLOT_NAMES: SLOT_NAMES, buildAskRequest: buildAskRequest,
+    SLOT_NAMES: SLOT_NAMES, slotOptionsHTML: slotOptionsHTML, buildAskRequest: buildAskRequest,
     renderAskPanel: renderAskPanel, renderIOPanel: renderIOPanel,
     renderBackupPanel: renderBackupPanel, renderTestPanel: renderTestPanel,
     renderInventoryPanel: renderInventoryPanel

@@ -1,8 +1,8 @@
-// js/engine-roll.js - Guard Tag module: parse/format [G: key=value] markers (v4.1 Phase 1)
-// Phase 2 will add the guarded roll chain in this same file. Loads BEFORE engine.js.
+// js/engine-roll.js - Guard Tags + Guarded Scene Roll Chain (v4.1 Phase 1+2)
 (function(){
-  // "[G: face=rear, in=indoor]" at end of line -> { g: {face:"rear", in:"indoor"}, text: line without the tag }
-  // Returns null when the line has no valid guard tag.
+  var CHAIN = ["venue", "action", "hands", "prop", "light", "depth", "camera"];
+
+  // "[G: face=rear, in=indoor]" at end of line -> { g: {...}, text: line without the tag }
   function parseGuard(text){
     var s = String(text || "");
     var m = s.match(/\[G:\s*([^\]]+)\]\s*$/i);
@@ -16,15 +16,14 @@
     if(!Object.keys(g).length) return null;
     return { g: g, text: s.replace(/\[G:\s*[^\]]+\]\s*$/i, "").trim() };
   }
-  // { face: "rear" } -> " [G: face=rear]" (for export; appended AFTER any [NOTE:])
+  // { face: "rear" } -> " [G: face=rear]" (export; appended AFTER any [NOTE:])
   function guardText(g){
     if(!g) return "";
     var keys = Object.keys(g);
     if(!keys.length) return "";
     return " [G: " + keys.map(function(k){ return k + "=" + g[k]; }).join(", ") + "]";
   }
-  // True when the item's guard agrees with the context guards rolled so far.
-  // Untagged items (g = null/empty) always match. Used by the Phase 2 roll chain.
+  // Untagged items always match. Tagged items fail only when a ctx key conflicts.
   function guardMatches(g, ctx){
     if(!g) return true;
     var keys = Object.keys(g);
@@ -33,7 +32,58 @@
     }
     return true;
   }
-  window.PRRoll = { parseGuard: parseGuard, guardText: guardText, guardMatches: guardMatches };
+  function mergeGuards(ctx, g){
+    if(!g) return;
+    Object.keys(g).forEach(function(k){ if(!ctx[k]) ctx[k] = g[k]; });
+  }
+  function itemGuards(pool, text){
+    for(var i = 0; i < (pool || []).length; i++){
+      if(pool[i].t === text && pool[i].g) return pool[i].g;
+    }
+    return null;
+  }
+  // Context read from what is currently on the board (for single-slot rerolls).
+  function ctxFromCurrent(lists, current){
+    var ctx = {};
+    CHAIN.forEach(function(slot){
+      mergeGuards(ctx, itemGuards((lists || {})[slot], (current || {})[slot]));
+    });
+    return ctx;
+  }
+  // Spicy filter -> guard filter -> untagged fallback -> anything. Never dead.
+  function pickGuarded(pool, allowSpicy, ctx){
+    var eligible = (pool || []).filter(function(it){ return allowSpicy || !it.x; });
+    if(!eligible.length) eligible = (pool || []).slice();
+    if(!eligible.length) return null;
+    var match = eligible.filter(function(it){ return guardMatches(it.g, ctx); });
+    if(match.length) return match[Math.floor(Math.random() * match.length)];
+    var untagged = eligible.filter(function(it){ return !it.g; });
+    var rest = untagged.length ? untagged : eligible;
+    return rest[Math.floor(Math.random() * rest.length)];
+  }
+  // Locked scene slots stay fixed and donate their guards to the context.
+  // Returns { vals: slot->text, ctx: rolled guard context }.
+  function rollScene(lists, allowSpicy, locked, current){
+    var ctx = {}, vals = {};
+    CHAIN.forEach(function(slot){
+      if(locked && locked[slot]){
+        vals[slot] = (current && current[slot]) || "";
+        mergeGuards(ctx, itemGuards((lists || {})[slot], vals[slot]));
+      }
+    });
+    CHAIN.forEach(function(slot){
+      if(locked && locked[slot]) return;
+      var pick = pickGuarded((lists || {})[slot], allowSpicy, ctx);
+      vals[slot] = pick ? pick.t : "";
+      if(pick) mergeGuards(ctx, pick.g);
+    });
+    return { vals: vals, ctx: ctx };
+  }
+
+  window.PRRoll = {
+    CHAIN: CHAIN, parseGuard: parseGuard, guardText: guardText, guardMatches: guardMatches,
+    pickGuarded: pickGuarded, ctxFromCurrent: ctxFromCurrent, rollScene: rollScene
+  };
   window.__EOF = window.__EOF || {};
   window.__EOF["engine-roll"] = true;
 })();
