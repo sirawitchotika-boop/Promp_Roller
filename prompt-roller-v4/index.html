@@ -25,7 +25,6 @@
   <div class="tabs">
     <div class="tab on" id="tab-roll" onclick="showTab('roll')">Roll</div>
     <div class="tab" id="tab-batch" onclick="showTab('batch')">Batch</div>
-    <div class="tab" id="tab-lib" onclick="showTab('lib')">Library</div>
     <div class="tab" id="tab-edit" onclick="showTab('edit')">Edit</div>
   </div>
 
@@ -79,20 +78,6 @@
     </div>
     <div id="batchOut"></div>
     <div class="note" id="batchQA" style="margin:4px 2px 8px"></div>
-  </main>
-
-  <main id="view-lib" style="display:none">
-    <div class="card">
-      <div class="row">
-        <input type="text" id="libName" placeholder="name (optional)" style="flex:1">
-        <button class="btn sm" onclick="PRBatch.saveLib()">💾 Save current prompt</button>
-      </div>
-      <div class="hint">Saves the Roll tab's current slots + prompt text.</div>
-    </div>
-    <div class="card">
-      <input type="text" id="libSearch" placeholder="🔍 search saved prompts..." oninput="PRBatch.renderLib()">
-      <div id="libList" style="margin-top:10px"></div>
-    </div>
   </main>
 
   <main id="view-edit" style="display:none">

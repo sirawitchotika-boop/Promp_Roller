@@ -1,7 +1,7 @@
 // js/app.js - App Controller, Tabs & Watchdog Verification
 (function(){
   function showTab(t){
-    ["roll", "batch", "lib", "edit"].forEach(function(k){
+    ["roll", "batch", "edit"].forEach(function(k){
       var v = document.getElementById("view-" + k);
       if(v) v.style.display = (k === t) ? "block" : "none";
       var tab = document.getElementById("tab-" + k);
@@ -9,7 +9,6 @@
     });
     if(t === "edit" && window.PREdit) window.PREdit.render();
     if(t === "batch" && window.PRBatch) window.PRBatch.renderBatch();
-    if(t === "lib" && window.PRBatch) window.PRBatch.renderLib();
   }
   window.showTab = showTab;
 

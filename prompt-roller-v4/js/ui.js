@@ -1,72 +1,25 @@
-// js/ui.js - View Rendering, State Store & Legacy Auto-Migration
+// js/ui.js - View Rendering & State Store
 (function(){
   var E = window.PREngine;
   var STORAGE_KEY = "prompt_roller_v4_state";
-  var S = { spicy: true, current: {}, locked: {}, custom: {}, lists: {}, presets: [], library: [] };
+  var S = { spicy: true, current: {}, locked: {}, custom: {}, lists: {}, presets: [] };
 
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
 
-  function migrateLegacy(){
-    var v2Raw = null, v1Raw = null;
-    try { v2Raw = localStorage.getItem("promptRollerV2"); } catch(e){}
-    if(v2Raw){
-      try {
-        var v2 = JSON.parse(v2Raw);
-        var b = v2 && v2.bases && v2.bases[v2.activeBase || "lustify"];
-        if(b && b.lists){
-          var lists = {};
-          E.ALL_SLOTS.forEach(function(s){
-            lists[s] = (b.lists[s] && Array.isArray(b.lists[s].items)) ? b.lists[s].items : [];
-          });
-          return {
-            spicy: v2.spicy !== false, current: b.current || {}, locked: b.locked || {}, custom: {},
-            lists: lists, presets: Array.isArray(b.scenes) ? b.scenes : clone(window.SEED_PRESETS||[]),
-            library: Array.isArray(v2.library) ? v2.library : []
-          };
-        }
-      } catch(e){}
-    }
-    try { v1Raw = localStorage.getItem("promptRollerV1"); } catch(e){}
-    if(v1Raw){
-      try {
-        var v1 = JSON.parse(v1Raw);
-        if(v1 && v1.lists){
-          var lists1 = {};
-          E.ALL_SLOTS.forEach(function(s){
-            lists1[s] = (v1.lists[s] && Array.isArray(v1.lists[s].items)) ? v1.lists[s].items : [];
-          });
-          return {
-            spicy: v1.spicy !== false, current: v1.current || {}, locked: v1.locked || {}, custom: {},
-            lists: lists1, presets: Array.isArray(v1.scenes) ? v1.scenes : clone(window.SEED_PRESETS||[]),
-            library: []
-          };
-        }
-      } catch(e){}
-    }
-    return null;
-  }
-
   function initStore(){
-    var raw = null, migrated = false;
+    var raw = null;
     try { raw = localStorage.getItem(STORAGE_KEY); } catch(e){}
     if(raw){ try { S = JSON.parse(raw); } catch(e){ S = null; } }
     if(!S || !S.lists || !Object.keys(S.lists).length){
-      var leg = migrateLegacy();
-      if(leg){ S = leg; migrated = true; }
-      else {
-        S = {
-          spicy: true, current: {}, locked: {}, custom: {},
-          lists: Object.assign({}, clone(window.SEED_SUBJECT||{}), clone(window.SEED_SCENE||{})),
-          presets: clone(window.SEED_PRESETS || []),
-          library: []
-        };
-        E.ALL_SLOTS.forEach(function(slot){ S.current[slot] = E.pickSlot(S.lists[slot], S.spicy); });
-      }
+      S = {
+        spicy: true, current: {}, locked: {}, custom: {},
+        lists: Object.assign({}, clone(window.SEED_SUBJECT||{}), clone(window.SEED_SCENE||{})),
+        presets: clone(window.SEED_PRESETS || [])
+      };
+      E.ALL_SLOTS.forEach(function(slot){ S.current[slot] = E.pickSlot(S.lists[slot], S.spicy); });
     }
-    if(!Array.isArray(S.library)) S.library = [];
     if(!Array.isArray(S.presets)) S.presets = clone(window.SEED_PRESETS || []);
     saveStore();
-    if(migrated) setTimeout(function(){ toast("migrated existing data to v4"); }, 400);
   }
 
   function saveStore(){

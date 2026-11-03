@@ -1,10 +1,9 @@
-// js/batch.js - Batch Roller (10 Prompts) & Saved Prompt Library
+// js/batch.js - Batch Roller (10 Prompts)
 (function(){
   var E = window.PREngine;
   var batchItems = [];
   var batchIdx = 0;
   var expanded = {};
-  var libCopied = {};
   var UNIQUE_SLOTS = ["hairC", "hairS", "eyes"];
 
   function esc(s){
@@ -105,86 +104,24 @@
     window.PRUI.copy(txt, "copied all 10 prompts!");
   }
 
-  function saveLib(){
-    var s = window.PRUI.getState();
-    var nameIn = document.getElementById("libName");
-    var name = (nameIn ? nameIn.value : "").trim() || ("Prompt #" + (s.library.length + 1));
-    var vals = {};
-    E.ALL_SLOTS.forEach(function(k){ vals[k] = s.current[k] || ""; });
-    var txt = E.buildPrompt(vals);
-    s.library.push({ id: "L" + Date.now(), ts: Date.now(), name: name, values: vals, text: txt });
-    if(nameIn) nameIn.value = "";
-    window.PRUI.saveStore();
-    renderLib();
-    window.PRUI.toast("saved to library");
-  }
-
-  function renderLib(){
-    var box = document.getElementById("libList");
-    if(!box) return;
-    var s = window.PRUI.getState();
-    var qEl = document.getElementById("libSearch");
-    var q = (qEl ? qEl.value : "").toLowerCase();
-    var list = (s.library || []).slice().reverse().filter(function(it){
-      return !q || it.name.toLowerCase().indexOf(q) >= 0 || it.text.toLowerCase().indexOf(q) >= 0;
-    });
-    if(!list.length){
-      box.innerHTML = "<div class='hint'>Nothing saved yet. Build a prompt on the Roll tab, then save it here.</div>";
-      return;
-    }
-    var h = "";
-    list.forEach(function(it){
-      var exp = expanded["l:" + it.id];
-      var dStr = new Date(it.ts).toISOString().slice(0, 10);
-      h += "<div class='item'><div class='tx" + (exp ? " full" : "") + "' data-lact='lexp' data-id='" + it.id + "'>";
-      h += "<b>" + esc(it.name) + "</b> <span class='badge'>" + dStr + " · " + it.text.length + "c</span>";
-      h += "<div style='color:var(--dim);font-size:12px;margin-top:4px'>" + esc(it.text) + "</div></div>";
-      h += "<button class='btn sm' data-lact='lcopy' data-id='" + it.id + "'>" + (libCopied[it.id] ? "✓" : "📋") + "</button>";
-      h += "<button class='btn sm' data-lact='lload' data-id='" + it.id + "' title='Load into Roll tab'>↩</button>";
-      h += "<button class='x' data-lact='ldel' data-id='" + it.id + "'>✕</button></div>";
-    });
-    box.innerHTML = h;
-  }
-
   function bindEvents(){
     var bOut = document.getElementById("batchOut");
-    if(bOut){
-      bOut.addEventListener("click", function(e){
-        var b = e.target.closest("[data-bact]");
-        if(!b) return;
-        var act = b.dataset.bact;
-        if(act === "bexp"){ expanded["b:" + batchIdx] = !expanded["b:" + batchIdx]; renderBatch(); }
-        else if(act === "bprev"){ batchIdx--; renderBatch(); }
-        else if(act === "bnext"){ batchIdx++; renderBatch(); }
-        else if(act === "bcopy"){
-          var it = batchItems[batchIdx];
-          if(it){ it.copied = true; renderBatch(); window.PRUI.copy(it.text, "copied #" + (batchIdx + 1)); }
-        }
-      });
-    }
-    var lOut = document.getElementById("libList");
-    if(lOut){
-      lOut.addEventListener("click", function(e){
-        var b = e.target.closest("[data-lact]");
-        if(!b) return;
-        var act = b.dataset.lact, id = b.dataset.id, s = window.PRUI.getState();
-        var it = (s.library || []).find(function(x){ return x.id === id; });
-        if(!it) return;
-        if(act === "lexp"){ expanded["l:" + id] = !expanded["l:" + id]; renderLib(); }
-        else if(act === "lcopy"){ libCopied[id] = true; renderLib(); window.PRUI.copy(it.text, "copied prompt"); }
-        else if(act === "lload"){
-          E.ALL_SLOTS.forEach(function(k){ if(it.values[k] !== undefined) s.current[k] = it.values[k]; });
-          window.PRUI.saveStore(); window.PRUI.renderAll(); window.showTab("roll");
-          window.PRUI.toast("loaded into Roll tab");
-        } else if(act === "ldel"){
-          s.library = s.library.filter(function(x){ return x.id !== id; });
-          window.PRUI.saveStore(); renderLib(); window.PRUI.toast("deleted");
-        }
-      });
-    }
+    if(!bOut) return;
+    bOut.addEventListener("click", function(e){
+      var b = e.target.closest("[data-bact]");
+      if(!b) return;
+      var act = b.dataset.bact;
+      if(act === "bexp"){ expanded["b:" + batchIdx] = !expanded["b:" + batchIdx]; renderBatch(); }
+      else if(act === "bprev"){ batchIdx--; renderBatch(); }
+      else if(act === "bnext"){ batchIdx++; renderBatch(); }
+      else if(act === "bcopy"){
+        var it = batchItems[batchIdx];
+        if(it){ it.copied = true; renderBatch(); window.PRUI.copy(it.text, "copied #" + (batchIdx + 1)); }
+      }
+    });
   }
 
-  window.PRBatch = { init: function(){ renderBatch(); renderLib(); bindEvents(); }, gen: gen, renderBatch: renderBatch, copyAll: copyAll, saveLib: saveLib, renderLib: renderLib };
+  window.PRBatch = { init: function(){ renderBatch(); bindEvents(); }, gen: gen, renderBatch: renderBatch, copyAll: copyAll };
   window.__EOF = window.__EOF || {};
   window.__EOF["batch"] = true;
 })();
