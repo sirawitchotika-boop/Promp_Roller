@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#14161c">
-  <title>Prompt Roller v4</title>
+  <title>Prompt Roller v4.1</title>
   <link rel="stylesheet" href="style.css">
   <script>
     window.__bootErr = "";
     window.addEventListener("error", function(e){
-      if(!window.__bootErr) window.__bootErr = (e.message||"error") + (e.filename?" in "+e.filename.split("/").pop():\"\") + (e.lineno?" line "+e.lineno:"");
+      if(!window.__bootErr) window.__bootErr = (e.message||"error") + (e.filename?" in "+e.filename.split("/").pop():"") + (e.lineno?" line "+e.lineno:"");
     }, true);
   </script>
 </head>
@@ -19,7 +19,7 @@
       <h1>🎲 Prompt Roller</h1>
       <div class="spicy">Spicy items <div class="sw on" id="spicySw"></div><span id="spicyLbl">ON</span></div>
     </div>
-    <div class="sub">Prompt Roller v4 · <span id="fileBadge" style="color:var(--dim)">loading files...</span></div>
+    <div class="sub">Prompt Roller v4.1 · <span id="fileBadge" style="color:var(--dim)">loading files...</span></div>
   </header>
 
   <div class="tabs">

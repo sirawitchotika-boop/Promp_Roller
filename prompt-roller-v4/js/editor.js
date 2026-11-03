@@ -41,7 +41,7 @@
       var it = p.it, idx = p.idx, expKey = "i:" + slot + idx;
       h += "<div class='item'><div class='tx" + (expanded[expKey] ? " full" : "") + "' data-eact='exp' data-slot='" + slot + "' data-idx='" + idx + "'>";
       h += (it.v ? "<span class='dot v'></span>" : "<span class='dot t'></span>") + (it.x ? "🔥 " : "") + esc(it.t);
-      if(it.g) h += "<div class='note'>[G: " + esc(Object.keys(it.g).map(function(k){ return k + "=" + it.g[k]; }).join(", ")) + "]</div>";
+      if(it.g) h += "<div class='note guard'>[G: " + esc(Object.keys(it.g).map(function(k){ return k + "=" + it.g[k]; }).join(", ")) + "]</div>";
       if(it.n) h += "<div class='note'>" + esc(it.n) + "</div>";
       h += "</div><button class='x' data-eact='del' data-slot='" + slot + "' data-idx='" + idx + "'>✕</button></div>";
     });
