@@ -38,9 +38,9 @@
     var r10Warn = E.validate({ outfit: "painted directly on her bare skin", venue: "beach with red bikini girl" });
     T("pairing R10: paint + bikini warns", r10Warn.some(function(w){ return w.includes("R10"); }));
 
-    // 7. Prompt build order (camera first, hook, tail last)
+    // 7. Prompt build order (camera first, live hook second, tail last)
     var pTest = E.buildPrompt({ camera: "Eye level view", body: "curvy fit body" });
-    T("build order: camera first", pTest.startsWith("Eye level view, 2.5D semi-realistic"));
+    T("build order: camera first", pTest.startsWith("Eye level view, " + R.HOOK));
     T("build order: tail last", pTest.endsWith("No other people, no readable text."));
 
     // 8. hairText interpolation
