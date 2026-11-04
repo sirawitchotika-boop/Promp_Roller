@@ -70,10 +70,12 @@
       if(!name){ alert("Enter preset name"); return; }
       var s = PRUI.getState(), vals = {};
       PREngine.SLOTS_SCENE.forEach(function(slot){ vals[slot] = s.current[slot]||""; });
-      s.presets.push({ name: name, values: vals });
+      // Auto-tag: saving while a mood is selected tags the new preset with it.
+      var moodTag = (s.mood && s.mood !== "any") ? s.mood : undefined;
+      s.presets.push({ name: name, values: vals, m: moodTag });
       document.getElementById("presetName").value = "";
       PRUI.saveStore(); PRUI.renderAll(); if(window.PREdit) window.PREdit.fillDropdown();
-      PRUI.toast("preset saved");
+      PRUI.toast("preset saved" + (moodTag ? " [M: " + moodTag + "]" : ""));
     };
   }
 

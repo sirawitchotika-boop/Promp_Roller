@@ -123,6 +123,13 @@
     var comboImp = E.parseImport("#list: action\nher move [NOTE: keep] [G: in=indoor] [M: shy]\n");
     T("mood: NOTE + G + M on one line all parsed", comboImp.added === 1 && comboImp.itemsByList.action[0].m === "shy" && comboImp.itemsByList.action[0].g.in === "indoor" && comboImp.itemsByList.action[0].n === "keep" && comboImp.itemsByList.action[0].t === "her move");
 
+    // 15. Preset mood tags (v4.3 Phase C)
+    var pmImp = E.parseImport("#preset: !Night club [M: tease]\ncamera: Eye level view\nvenue: in a dark party room\n");
+    T("preset mood: [M:] on header parsed", pmImp.presetsAdded === 1 && pmImp.presets[0].m === "tease" && pmImp.presets[0].name === "Night club" && pmImp.presets[0].x === 1);
+    var pmExp = E.exportText({}, null, [{ name: "Cold rooftop", values: { venue: "on a rooftop" }, m: "cold" }]);
+    var pmRe = E.parseImport(pmExp);
+    T("preset mood: export -> import round trip", pmRe.presetsAdded === 1 && pmRe.presets[0].m === "cold" && pmRe.presets[0].values.venue === "on a rooftop");
+
     return results;
   }
 

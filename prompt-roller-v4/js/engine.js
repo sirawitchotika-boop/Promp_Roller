@@ -99,11 +99,14 @@
           }
           var pSpicy = (mPreset[1] === "!") || pRest.startsWith("!");
           var pName = pRest.replace(/^[!*]+/, "").trim();
+          var pMood = PRRoll.parseMood(pName);
+          if(pMood) pName = pMood.text; else pName = PRRoll.stripBadMood(pName);
           var pk2 = pName.toLowerCase();
           if(seenPresets[pk2]){ duplicates++; curPreset = null; continue; }
           seenPresets[pk2] = true;
           curPreset = { name: pName, values: {} };
           if(pSpicy) curPreset.x = 1;
+          if(pMood) curPreset.m = pMood.m;
           presets.push(curPreset); presetsAdded++;
           continue;
         }
@@ -178,7 +181,7 @@
       });
       if(!singleSlot && Array.isArray(presets) && presets.length){
         presets.forEach(function(p){
-          out.push("#preset: " + (p.x ? "!" : "") + p.name);
+          out.push("#preset: " + (p.x ? "!" : "") + p.name + (p.m ? " [M: " + p.m + "]" : ""));
           SLOTS_SCENE.forEach(function(sc){
             if(p.values && p.values[sc]) out.push(sc + ": " + p.values[sc]);
           });

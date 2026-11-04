@@ -97,14 +97,16 @@
     }
   }
 
+  // Preset dropdown: SFW mode hides spicy; a selected mood hides differently-tagged presets.
+  // Untagged presets always show (same rule as items).
   function renderPresets(){
     var sel = document.getElementById("presetSel");
     if(!sel) return;
     sel.innerHTML = "";
     (S.presets || []).forEach(function(p, i){
-      if(S.mode === "sfw" && p.x) return;
+      if((S.mode === "sfw" && p.x) || (S.mood && S.mood !== "any" && p.m && p.m !== S.mood)) return;
       var opt = document.createElement("option");
-      opt.value = i; opt.textContent = p.name + (p.x ? " [Spicy]" : "");
+      opt.value = i; opt.textContent = p.name + (p.x ? " [Spicy]" : "") + (p.m ? " [" + p.m + "]" : "");
       sel.appendChild(opt);
     });
   }

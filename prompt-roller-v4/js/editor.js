@@ -51,7 +51,9 @@
     presets.forEach(function(sc, idx){
       var prev = E.SLOTS_SCENE.map(function(k){ return (sc.values && sc.values[k]) ? sc.values[k] : "-"; }).join(" | ");
       h += "<div class='item'><div class='tx" + (expanded["sc"+idx] ? " full" : "") + "' data-eact='expSc' data-idx='" + idx + "'>";
-      h += "<b>" + esc(sc.name) + "</b>" + (sc.x ? " 🔥" : "") + "<div style='color:var(--dim);font-size:12px;margin-top:4px'>" + esc(prev) + "</div></div>";
+      h += "<b>" + esc(sc.name) + "</b>" + (sc.x ? " 🔥" : "") +
+        (sc.m ? " <span style='color:var(--acc);font-size:11px'>[M: " + esc(sc.m) + "]</span>" : "") +
+        "<div style='color:var(--dim);font-size:12px;margin-top:4px'>" + esc(prev) + "</div></div>";
       h += "<button class='btn sm' data-eact='applySc' data-idx='" + idx + "'>Apply</button>";
       h += "<button class='x' data-eact='delSc' data-idx='" + idx + "'>✕</button></div>";
     });
