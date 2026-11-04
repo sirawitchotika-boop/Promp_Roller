@@ -50,7 +50,7 @@
     if(moodSel) moodSel.onchange = function(){
       var s = PRUI.getState();
       s.mood = this.value || "any";
-      PRUI.saveStore();
+      PRUI.saveStore(); PRUI.renderAll();
       PRUI.toast("mood: " + s.mood);
     };
     document.getElementById("btnRollAll").onclick = function(){ PRUI.rollGroup(PREngine.ALL_SLOTS); };
