@@ -1,10 +1,18 @@
-// js/ui.js - View Rendering & State Store
+// js/ui.js - View Rendering & State Store (v4.2 roll modes: sfw / mix / nsfw)
 (function(){
   var E = window.PREngine;
   var STORAGE_KEY = "prompt_roller_v4_state";
-  var S = { spicy: true, current: {}, locked: {}, custom: {}, lists: {}, presets: [] };
+  var S = { mode: "mix", current: {}, locked: {}, custom: {}, lists: {}, presets: [] };
 
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
+
+  // Old saves store spicy (boolean). Map it to a roll mode once, then drop the key.
+  function normMode(){
+    if(S.mode !== "sfw" && S.mode !== "nsfw" && S.mode !== "mix"){
+      S.mode = (S.spicy === false) ? "sfw" : "mix";
+    }
+    if(S.spicy !== undefined) delete S.spicy;
+  }
 
   function initStore(){
     var raw = null;
@@ -12,13 +20,14 @@
     if(raw){ try { S = JSON.parse(raw); } catch(e){ S = null; } }
     if(!S || !S.lists || !Object.keys(S.lists).length){
       S = {
-        spicy: true, current: {}, locked: {}, custom: {},
+        mode: "mix", current: {}, locked: {}, custom: {},
         lists: Object.assign({}, clone(window.SEED_SUBJECT||{}), clone(window.SEED_SCENE||{})),
         presets: clone(window.SEED_PRESETS || [])
       };
-      E.ALL_SLOTS.forEach(function(slot){ S.current[slot] = E.pickSlot(S.lists[slot], S.spicy); });
+      E.ALL_SLOTS.forEach(function(slot){ S.current[slot] = E.pickSlot(S.lists[slot], S.mode); });
     }
     if(!Array.isArray(S.presets)) S.presets = clone(window.SEED_PRESETS || []);
+    normMode();
     saveStore();
   }
 
@@ -92,7 +101,7 @@
     if(!sel) return;
     sel.innerHTML = "";
     (S.presets || []).forEach(function(p, i){
-      if(!S.spicy && p.x) return;
+      if(S.mode === "sfw" && p.x) return;
       var opt = document.createElement("option");
       opt.value = i; opt.textContent = p.name + (p.x ? " [Spicy]" : "");
       sel.appendChild(opt);
@@ -100,20 +109,25 @@
   }
 
   function renderAll(){
+    normMode();
     renderSlots("slotsSubject", E.SLOTS_SUBJECT);
     renderSlots("slotsScene", E.SLOTS_SCENE);
     renderPresets();
     renderPrompt();
-    var sw = document.getElementById("spicySw"), lbl = document.getElementById("spicyLbl");
-    if(sw) sw.classList.toggle("on", S.spicy);
-    if(lbl) lbl.textContent = S.spicy ? "ON" : "OFF";
+    var seg = document.getElementById("modeSeg");
+    if(seg){
+      var btns = seg.querySelectorAll(".mbtn");
+      for(var i = 0; i < btns.length; i++){
+        btns[i].classList.toggle("on", btns[i].getAttribute("data-mode") === S.mode);
+      }
+    }
   }
 
   function rollGroup(slots){
     var hasChain = !!(window.PRRoll && PRRoll.rollScene);
     var roll = null;
     if(hasChain && slots.indexOf("venue") >= 0){
-      roll = PRRoll.rollScene(S.lists, S.spicy, S.locked, S.current);
+      roll = PRRoll.rollScene(S.lists, S.mode, S.locked, S.current);
     }
     var ctx = roll ? roll.ctx : (hasChain ? PRRoll.ctxFromCurrent(S.lists, S.current) : null);
     slots.forEach(function(s){
@@ -123,10 +137,10 @@
         return;
       }
       if(s === "outfit" && hasChain){
-        var gPick = PRRoll.pickGuarded(S.lists.outfit, S.spicy, ctx);
+        var gPick = PRRoll.pickGuarded(S.lists.outfit, S.mode, ctx);
         S.current[s] = gPick ? gPick.t : "";
       } else {
-        S.current[s] = E.pickSlot(S.lists[s], S.spicy);
+        S.current[s] = E.pickSlot(S.lists[s], S.mode);
       }
       delete S.custom[s];
     });
@@ -135,7 +149,7 @@
 
   window.PRUI = {
     init: function(){ initStore(); renderAll(); this.bindEvents(); },
-    getState: function(){ return S; },
+    getState: function(){ normMode(); return S; },
     saveStore: saveStore, renderAll: renderAll, renderPrompt: renderPrompt,
     onOutEdit: onOutEdit, rollGroup: rollGroup, toast: toast, copy: copy,
     bindEvents: function(){
@@ -149,10 +163,10 @@
             (E.SLOTS_SCENE.indexOf(slot) >= 0 || slot === "outfit");
           if(guardAware){
             var ctx = PRRoll.ctxFromCurrent(S.lists, S.current);
-            var gPick = PRRoll.pickGuarded(S.lists[slot], S.spicy, ctx);
+            var gPick = PRRoll.pickGuarded(S.lists[slot], S.mode, ctx);
             S.current[slot] = gPick ? gPick.t : "";
           } else {
-            S.current[slot] = E.pickSlot(S.lists[slot], S.spicy);
+            S.current[slot] = E.pickSlot(S.lists[slot], S.mode);
           }
           delete S.custom[slot]; saveStore(); renderAll();
         }
