@@ -1,6 +1,20 @@
-// js/engine-roll.js - Guard Tags + Guarded Scene Roll Chain (v4.1)
+// js/engine-roll.js - Roll Modes + Guard Tags + Guarded Scene Roll Chain (v4.2)
 (function(){
   var CHAIN = ["venue", "action", "hands", "prop", "light", "depth", "camera"];
+
+  // Roll-mode pool filter (single source of truth for every roll path).
+  // "sfw" = clean items only · "nsfw" = x-flagged only · "mix" = everything.
+  // Empty result falls back to the whole pool - never a dead roll.
+  // Legacy booleans map: true -> "mix", false -> "sfw" (old spicy toggle).
+  function filterPool(pool, mode){
+    if(!pool || !pool.length) return [];
+    if(mode === true) mode = "mix"; else if(mode === false) mode = "sfw";
+    var el;
+    if(mode === "nsfw"){ el = pool.filter(function(it){ return it.x; }); if(!el.length) el = pool.slice(); }
+    else if(mode === "sfw"){ el = pool.filter(function(it){ return !it.x; }); if(!el.length) el = pool.slice(); }
+    else el = pool.slice();
+    return el;
+  }
 
   // "[G: face=rear, in=indoor]" at end of line -> { g: {...}, text: line without the tag }
   function parseGuard(text){
@@ -57,10 +71,9 @@
     });
     return ctx;
   }
-  // Spicy filter -> guard filter -> untagged fallback -> anything. Never dead.
-  function pickGuarded(pool, allowSpicy, ctx){
-    var eligible = (pool || []).filter(function(it){ return allowSpicy || !it.x; });
-    if(!eligible.length) eligible = (pool || []).slice();
+  // Mode filter -> guard filter -> untagged fallback -> anything. Never dead.
+  function pickGuarded(pool, mode, ctx){
+    var eligible = filterPool(pool, mode);
     if(!eligible.length) return null;
     var match = eligible.filter(function(it){ return guardMatches(it.g, ctx); });
     if(match.length) return match[Math.floor(Math.random() * match.length)];
@@ -69,7 +82,7 @@
     return rest[Math.floor(Math.random() * rest.length)];
   }
   // Locked scene slots stay fixed and donate their guards to the context.
-  function rollScene(lists, allowSpicy, locked, current){
+  function rollScene(lists, mode, locked, current){
     var ctx = {}, vals = {};
     CHAIN.forEach(function(slot){
       if(locked && locked[slot]){
@@ -79,7 +92,7 @@
     });
     CHAIN.forEach(function(slot){
       if(locked && locked[slot]) return;
-      var pick = pickGuarded((lists || {})[slot], allowSpicy, ctx);
+      var pick = pickGuarded((lists || {})[slot], mode, ctx);
       vals[slot] = pick ? pick.t : "";
       if(pick) mergeGuards(ctx, pick.g);
     });
@@ -87,7 +100,7 @@
   }
 
   window.PRRoll = {
-    CHAIN: CHAIN, parseGuard: parseGuard, stripBadGuard: stripBadGuard, guardText: guardText,
+    CHAIN: CHAIN, filterPool: filterPool, parseGuard: parseGuard, stripBadGuard: stripBadGuard, guardText: guardText,
     guardMatches: guardMatches, pickGuarded: pickGuarded, ctxFromCurrent: ctxFromCurrent, rollScene: rollScene
   };
   window.__EOF = window.__EOF || {};

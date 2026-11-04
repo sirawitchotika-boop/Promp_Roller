@@ -1,4 +1,4 @@
-// js/app.js - App Controller, Tabs & Watchdog Verification
+// js/app.js - App Controller, Tabs & Watchdog Verification (v4.2 roll modes)
 (function(){
   function showTab(t){
     ["roll", "batch", "edit"].forEach(function(k){
@@ -37,9 +37,15 @@
   }
 
   function bindControls(){
-    document.getElementById("spicySw").onclick = function(){
-      var s = PRUI.getState(); s.spicy = !s.spicy; PRUI.saveStore(); PRUI.renderAll();
-    };
+    var seg = document.getElementById("modeSeg");
+    if(seg) seg.addEventListener("click", function(e){
+      var b = e.target.closest(".mbtn");
+      if(!b) return;
+      var s = PRUI.getState();
+      s.mode = b.getAttribute("data-mode");
+      PRUI.saveStore(); PRUI.renderAll();
+      PRUI.toast("roll mode: " + s.mode);
+    });
     document.getElementById("btnRollAll").onclick = function(){ PRUI.rollGroup(PREngine.ALL_SLOTS); };
     document.getElementById("btnRollSub").onclick = function(){ PRUI.rollGroup(PREngine.SLOTS_SUBJECT); };
     document.getElementById("btnRollScn").onclick = function(){ PRUI.rollGroup(PREngine.SLOTS_SCENE); };

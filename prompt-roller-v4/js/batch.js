@@ -1,4 +1,4 @@
-// js/batch.js - Batch Roller (10 Prompts)
+// js/batch.js - Batch Roller (10 Prompts, v4.2 roll modes)
 (function(){
   var E = window.PREngine;
   var batchItems = [];
@@ -19,23 +19,20 @@
     return a;
   }
 
-  function gen(mode){
+  function gen(kind){
     var s = window.PRUI.getState();
     var hasChain = !!(window.PRRoll && PRRoll.rollScene);
     var baseCtx = hasChain ? PRRoll.ctxFromCurrent(s.lists, s.current) : null;
     var uniq = {};
     UNIQUE_SLOTS.forEach(function(slot){
-      if(!s.locked[slot]){
-        var pool = (s.lists[slot] || []).filter(function(it){ return s.spicy || !it.x; });
-        uniq[slot] = shuffle(pool);
-      }
+      if(!s.locked[slot]) uniq[slot] = shuffle(PRRoll.filterPool(s.lists[slot], s.mode));
     });
 
     batchItems = [];
     for(var i = 0; i < 10; i++){
       var vals = {}, ctx = baseCtx;
-      if(mode !== "subject" && hasChain){
-        var scene = PRRoll.rollScene(s.lists, s.spicy, s.locked, s.current);
+      if(kind !== "subject" && hasChain){
+        var scene = PRRoll.rollScene(s.lists, s.mode, s.locked, s.current);
         E.SLOTS_SCENE.forEach(function(slot){ vals[slot] = scene.vals[slot] || s.current[slot] || ""; });
         ctx = scene.ctx;
       } else {
@@ -45,10 +42,10 @@
         if(s.locked[slot]){ vals[slot] = s.current[slot] || ""; return; }
         if(uniq[slot] && uniq[slot].length){ vals[slot] = uniq[slot][i % uniq[slot].length].t; return; }
         if(slot === "outfit" && hasChain){
-          var gPick = PRRoll.pickGuarded(s.lists.outfit, s.spicy, ctx);
-          vals[slot] = gPick ? gPick.t : E.pickSlot(s.lists.outfit, s.spicy);
+          var gPick = PRRoll.pickGuarded(s.lists.outfit, s.mode, ctx);
+          vals[slot] = gPick ? gPick.t : E.pickSlot(s.lists.outfit, s.mode);
         } else {
-          vals[slot] = E.pickSlot(s.lists[slot], s.spicy);
+          vals[slot] = E.pickSlot(s.lists[slot], s.mode);
         }
       });
       var txt = E.buildPrompt(vals);
@@ -111,7 +108,7 @@
       var b = e.target.closest("[data-bact]");
       if(!b) return;
       var act = b.dataset.bact;
-      if(act === "bexp"){ expanded["b:" + batchIdx] = !expanded["b:" + batchIdx]; renderBatch(); }
+      if(act === "bexp"){ expanded["b:"+batchIdx] = !expanded["b:"+batchIdx]; renderBatch(); }
       else if(act === "bprev"){ batchIdx--; renderBatch(); }
       else if(act === "bnext"){ batchIdx++; renderBatch(); }
       else if(act === "bcopy"){

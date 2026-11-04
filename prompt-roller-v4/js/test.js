@@ -1,4 +1,4 @@
-// js/test.js - In-App Self-Test Suite (Throwaway Mock Data)
+// js/test.js - In-App Self-Test Suite (Throwaway Mock Data, v4.2)
 (function(){
   var E = window.PREngine;
   var R = window.PR_RULES;
@@ -49,13 +49,26 @@
     var h2 = E.hairText("a messy bun", "black");
     T("hairText: fallback to ', her X hair'", h2 === "a messy bun, her black hair");
 
-    // 9. Spicy OFF filter
+    // 9. Spicy OFF filter (legacy boolean API still works)
     var pool = [{ t: "SFW item" }, { t: "Spicy item", x: 1 }];
     var sfwPicked = true;
     for(var k = 0; k < 20; k++){
       if(E.pickSlot(pool, false) === "Spicy item") sfwPicked = false;
     }
     T("spicy OFF: pool contains no x-flagged items", sfwPicked);
+
+    // 9b. Roll modes (v4.2): sfw / nsfw / mix
+    var mPool = [{ t: "clean item" }, { t: "hot item", x: 1 }];
+    var nsfwOnly = true, sfwOnly = true;
+    for(var m9 = 0; m9 < 20; m9++){
+      if(E.pickSlot(mPool, "nsfw") !== "hot item") nsfwOnly = false;
+      if(E.pickSlot(mPool, "sfw") !== "clean item") sfwOnly = false;
+    }
+    T("mode nsfw: only x-flagged items roll", nsfwOnly);
+    T("mode sfw: only clean items roll", sfwOnly);
+    T("mode nsfw: empty spicy pool falls back to clean", E.pickSlot([{ t: "clean item" }], "nsfw") === "clean item");
+    var mixPick = PRRoll.pickGuarded(mPool, "mix", {});
+    T("mode mix: guarded roll draws from the full pool", !!mixPick && (mixPick.t === "clean item" || mixPick.t === "hot item"));
 
     // 10. Import parser
     var sampleImp = "#list: hairS\n!*her {c} hair in a twist\n1. twin {c} braids\n// comment\na teen girl style\n";

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#14161c">
-  <title>Prompt Roller v4.1</title>
+  <title>Prompt Roller v4.2</title>
   <link rel="stylesheet" href="style.css">
   <script>
     window.__bootErr = "";
@@ -15,11 +15,13 @@
 </head>
 <body>
   <header>
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h1>🎲 Prompt Roller</h1>
-      <div class="spicy">Spicy items <div class="sw on" id="spicySw"></div><span id="spicyLbl">ON</span></div>
+    <h1>🎲 Prompt Roller</h1>
+    <div class="mode" id="modeSeg">
+      <button class="mbtn" type="button" data-mode="sfw">SFW</button>
+      <button class="mbtn" type="button" data-mode="mix">Mix</button>
+      <button class="mbtn" type="button" data-mode="nsfw">NSFW</button>
     </div>
-    <div class="sub">Prompt Roller v4.1 · <span id="fileBadge" style="color:var(--dim)">loading files...</span></div>
+    <div class="sub">Prompt Roller v4.2 · <span id="fileBadge" style="color:var(--dim)">loading files...</span></div>
   </header>
 
   <div class="tabs">

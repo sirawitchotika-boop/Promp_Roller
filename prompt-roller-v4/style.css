@@ -1,4 +1,4 @@
-/* style.css - Prompt Roller v4.1
+/* style.css - Prompt Roller v4.2
    tokens -> base -> chrome -> components. 4/8px spacing grid, 44px minimum touch targets. */
 
 /* --- 1. tokens --- */
@@ -29,10 +29,18 @@ body { background: var(--bg); color: var(--txt); font: 15px/1.45 system-ui, -app
 /* --- 3. chrome: header + tabs --- */
 header { padding: 4px 4px 10px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
 h1 { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -.01em; }
-.sub { color: var(--dim); font-size: 11.5px; margin-top: 2px; }
+.sub { color: var(--dim); font-size: 11.5px; margin-top: 6px; }
 .tabs { display: flex; gap: 6px; margin: 10px 0; position: sticky; top: 0; background: var(--bg); z-index: 5; padding: 6px 0; border-bottom: 1px solid var(--line); }
 .tab { flex: 1; min-height: 44px; display: flex; align-items: center; justify-content: center; padding: 8px 4px; border-radius: var(--r-md); background: var(--card); color: var(--dim); text-align: center; font-weight: 600; font-size: 13.5px; cursor: pointer; border: 1px solid var(--line); }
 .tab.on { color: #fff; background: var(--acc); border-color: var(--acc); }
+
+/* --- 3b. roll mode segment (SFW / Mix / NSFW) --- */
+.mode { display: flex; gap: 6px; margin-top: 8px; }
+.mbtn { flex: 1; min-height: 44px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--card); color: var(--dim); font: 700 13px system-ui, -apple-system, sans-serif; cursor: pointer; }
+.mbtn.on { background: var(--acc); border-color: var(--acc); color: #fff; }
+.mbtn.on[data-mode="sfw"] { background: var(--ok); border-color: var(--ok); color: #06281a; }
+.mbtn.on[data-mode="nsfw"] { background: var(--bad); border-color: var(--bad); color: #2b0710; }
+.mbtn:active { filter: brightness(1.18); }
 
 /* --- 4. cards + sections --- */
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 14px; margin-bottom: 12px; }
@@ -66,10 +74,6 @@ textarea:focus, input[type=text]:focus, select:focus { border-color: var(--acc);
 .warns { font-size: 12px; color: var(--bad); margin-top: 6px; line-height: 1.4; }
 .badge { font-size: 9.5px; background: var(--acc); border-radius: 4px; padding: 1px 5px; color: #fff; font-weight: 700; }
 .spicy { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--dim); }
-.sw { position: relative; width: 40px; height: 22px; background: #394156; border-radius: 11px; flex: none; cursor: pointer; }
-.sw.on { background: var(--bad); }
-.sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: .2s; }
-.sw.on::after { left: 20px; }
 
 /* --- 8. items, notes, hints --- */
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }

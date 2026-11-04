@@ -51,12 +51,11 @@
       });
       return warns;
     },
-    pickSlot: function(pool, allowSpicy){
-      if(!pool || !pool.length) return "";
-      var eligible = pool.filter(function(it){ return allowSpicy || !it.x; });
-      if(!eligible.length) eligible = pool;
-      var idx = Math.floor(Math.random() * eligible.length);
-      return eligible[idx] ? eligible[idx].t : "";
+    pickSlot: function(pool, mode){
+      var el = PRRoll.filterPool(pool, mode);
+      if(!el.length) return "";
+      var idx = Math.floor(Math.random() * el.length);
+      return el[idx] ? el[idx].t : "";
     },
     parseImport: function(text, defaultSlot, existingLists, existingPresets){
       var lines = (text || "").split(/\r?\n/);
