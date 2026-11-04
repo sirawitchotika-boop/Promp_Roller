@@ -1,18 +1,23 @@
-// js/engine-roll.js - Roll Modes + Guard Tags + Guarded Scene Roll Chain (v4.2)
+// js/engine-roll.js - Roll Modes + Mood Tags + Guard Tags + Scene Roll Chain (v4.3)
 (function(){
   var CHAIN = ["venue", "action", "hands", "prop", "light", "depth", "camera"];
+  var MOODS = ["devoted", "femdom", "tease", "shy", "cold", "jealous"];
 
-  // Roll-mode pool filter (single source of truth for every roll path).
-  // "sfw" = clean items only · "nsfw" = x-flagged only · "mix" = everything.
-  // Empty result falls back to the whole pool - never a dead roll.
-  // Legacy booleans map: true -> "mix", false -> "sfw" (old spicy toggle).
-  function filterPool(pool, mode){
+  // Roll-mode + mood pool filter (single source of truth for every roll path).
+  // mode: "sfw" = clean only · "nsfw" = x-flagged only · "mix" = all (legacy true/false -> mix/sfw).
+  // mood: falsy or "any" = no filter · else keep mood-tagged + untagged items.
+  // Empty mood result falls back to the mode-filtered pool - never a dead roll.
+  function filterPool(pool, mode, mood){
     if(!pool || !pool.length) return [];
     if(mode === true) mode = "mix"; else if(mode === false) mode = "sfw";
     var el;
     if(mode === "nsfw"){ el = pool.filter(function(it){ return it.x; }); if(!el.length) el = pool.slice(); }
     else if(mode === "sfw"){ el = pool.filter(function(it){ return !it.x; }); if(!el.length) el = pool.slice(); }
     else el = pool.slice();
+    if(mood && mood !== "any"){
+      var mo = el.filter(function(it){ return !it.m || it.m === mood; });
+      if(mo.length) el = mo;
+    }
     return el;
   }
 
@@ -36,6 +41,33 @@
     var s = String(text || "");
     if(!/\[\s*g(?:uard)?\s*:/i.test(s)) return s;
     return s.replace(/\[\s*g(?:uard)?\s*:[^\]]*\]/gi, "").replace(/\s{2,}/g, " ").trim();
+  }
+  // "[M: tease]" at end of line -> { m: "tease", text: line without the tag }
+  function parseMood(text){
+    var s = String(text || "");
+    var m = s.match(/\[M:\s*([a-z0-9-]+)\]\s*$/i);
+    if(!m) return null;
+    return { m: m[1].toLowerCase(), text: s.replace(/\[M:\s*[a-z0-9-]+\]\s*$/i, "").trim() };
+  }
+  // Malformed mood brackets ([M:], [mood: x]) stripped so they never leak into prompt text.
+  function stripBadMood(text){
+    var s = String(text || "");
+    if(!/\[\s*m(?:ood)?\s*:/i.test(s)) return s;
+    return s.replace(/\[\s*m(?:ood)?\s*:[^\]]*\]/gi, "").replace(/\s{2,}/g, " ").trim();
+  }
+  // Parse [M:] + [G:] tags from the end of a line, in any order.
+  // Returns { m, g, text } - malformed brackets stripped, text always clean.
+  function parseTags(text){
+    var s = String(text || ""), m, g;
+    var mm = parseMood(s);
+    if(mm){ m = mm.m; s = mm.text; }
+    var gg = parseGuard(s);
+    if(gg){ g = gg.g; s = gg.text; }
+    var mm2 = parseMood(s);
+    if(mm2 && !m){ m = mm2.m; s = mm2.text; }
+    s = stripBadMood(s);
+    s = stripBadGuard(s);
+    return { m: m, g: g, text: s };
   }
   // { face: "rear" } -> " [G: face=rear]" (export; appended AFTER any [NOTE:])
   function guardText(g){
@@ -71,9 +103,9 @@
     });
     return ctx;
   }
-  // Mode filter -> guard filter -> untagged fallback -> anything. Never dead.
-  function pickGuarded(pool, mode, ctx){
-    var eligible = filterPool(pool, mode);
+  // Mode + mood filter -> guard filter -> untagged fallback -> anything. Never dead.
+  function pickGuarded(pool, mode, ctx, mood){
+    var eligible = filterPool(pool, mode, mood);
     if(!eligible.length) return null;
     var match = eligible.filter(function(it){ return guardMatches(it.g, ctx); });
     if(match.length) return match[Math.floor(Math.random() * match.length)];
@@ -82,7 +114,7 @@
     return rest[Math.floor(Math.random() * rest.length)];
   }
   // Locked scene slots stay fixed and donate their guards to the context.
-  function rollScene(lists, mode, locked, current){
+  function rollScene(lists, mode, locked, current, mood){
     var ctx = {}, vals = {};
     CHAIN.forEach(function(slot){
       if(locked && locked[slot]){
@@ -92,7 +124,7 @@
     });
     CHAIN.forEach(function(slot){
       if(locked && locked[slot]) return;
-      var pick = pickGuarded((lists || {})[slot], mode, ctx);
+      var pick = pickGuarded((lists || {})[slot], mode, ctx, mood);
       vals[slot] = pick ? pick.t : "";
       if(pick) mergeGuards(ctx, pick.g);
     });
@@ -100,7 +132,8 @@
   }
 
   window.PRRoll = {
-    CHAIN: CHAIN, filterPool: filterPool, parseGuard: parseGuard, stripBadGuard: stripBadGuard, guardText: guardText,
+    CHAIN: CHAIN, MOODS: MOODS, filterPool: filterPool, parseGuard: parseGuard, stripBadGuard: stripBadGuard,
+    parseMood: parseMood, stripBadMood: stripBadMood, parseTags: parseTags, guardText: guardText,
     guardMatches: guardMatches, pickGuarded: pickGuarded, ctxFromCurrent: ctxFromCurrent, rollScene: rollScene
   };
   window.__EOF = window.__EOF || {};

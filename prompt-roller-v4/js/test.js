@@ -1,4 +1,4 @@
-// js/test.js - In-App Self-Test Suite (Throwaway Mock Data, v4.2)
+// js/test.js - In-App Self-Test Suite (Throwaway Mock Data, v4.3)
 (function(){
   var E = window.PREngine;
   var R = window.PR_RULES;
@@ -105,6 +105,23 @@
     T("import: codeblock fences skipped", fRes.added === 1 && fRes.bad === 0);
     var badG = E.parseImport("#list: outfit\nher red dress [G: front]\n");
     T("import: malformed guard bracket stripped", badG.added === 1 && badG.itemsByList.outfit[0].t === "her red dress" && !badG.itemsByList.outfit[0].g);
+
+    // 14. Mood tags (v4.3)
+    var mImp = E.parseImport("#list: face\nher sly wink [M: tease]\n");
+    T("mood: tag parsed & stripped from text", mImp.added === 1 && mImp.itemsByList.face[0].m === "tease" && mImp.itemsByList.face[0].t === "her sly wink");
+    var mExp = E.exportText({ face: [{ t: "her soft gaze", m: "devoted" }] });
+    var mRe = E.parseImport(mExp);
+    T("mood: export -> import round trip", mRe.added === 1 && mRe.itemsByList.face[0].m === "devoted");
+    var moodPool = [{ t: "free item" }, { t: "tease item", m: "tease" }, { t: "cold item", m: "cold" }];
+    var moodOk = true;
+    for(var mi = 0; mi < 20; mi++){
+      if(E.pickSlot(moodPool, "mix", "tease") === "cold item") moodOk = false;
+    }
+    T("mood: filter never returns a mismatched mood", moodOk);
+    T("mood: untagged items still roll under a mood", E.pickSlot([{ t: "free item" }], "mix", "tease") === "free item");
+    T("mood: all-mismatch pool falls back (never dead)", E.pickSlot([{ t: "cold item", m: "cold" }], "mix", "tease") === "cold item");
+    var comboImp = E.parseImport("#list: action\nher move [NOTE: keep] [G: in=indoor] [M: shy]\n");
+    T("mood: NOTE + G + M on one line all parsed", comboImp.added === 1 && comboImp.itemsByList.action[0].m === "shy" && comboImp.itemsByList.action[0].g.in === "indoor" && comboImp.itemsByList.action[0].n === "keep" && comboImp.itemsByList.action[0].t === "her move");
 
     return results;
   }
