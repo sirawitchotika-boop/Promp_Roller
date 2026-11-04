@@ -1,4 +1,4 @@
-// js/batch.js - Batch Roller (10 Prompts, v4.2 roll modes)
+// js/batch.js - Batch Roller (10 Prompts, v4.3 roll modes + mood filter)
 (function(){
   var E = window.PREngine;
   var batchItems = [];
@@ -25,14 +25,14 @@
     var baseCtx = hasChain ? PRRoll.ctxFromCurrent(s.lists, s.current) : null;
     var uniq = {};
     UNIQUE_SLOTS.forEach(function(slot){
-      if(!s.locked[slot]) uniq[slot] = shuffle(PRRoll.filterPool(s.lists[slot], s.mode));
+      if(!s.locked[slot]) uniq[slot] = shuffle(PRRoll.filterPool(s.lists[slot], s.mode, s.mood));
     });
 
     batchItems = [];
     for(var i = 0; i < 10; i++){
       var vals = {}, ctx = baseCtx;
       if(kind !== "subject" && hasChain){
-        var scene = PRRoll.rollScene(s.lists, s.mode, s.locked, s.current);
+        var scene = PRRoll.rollScene(s.lists, s.mode, s.locked, s.current, s.mood);
         E.SLOTS_SCENE.forEach(function(slot){ vals[slot] = scene.vals[slot] || s.current[slot] || ""; });
         ctx = scene.ctx;
       } else {
@@ -42,10 +42,10 @@
         if(s.locked[slot]){ vals[slot] = s.current[slot] || ""; return; }
         if(uniq[slot] && uniq[slot].length){ vals[slot] = uniq[slot][i % uniq[slot].length].t; return; }
         if(slot === "outfit" && hasChain){
-          var gPick = PRRoll.pickGuarded(s.lists.outfit, s.mode, ctx);
-          vals[slot] = gPick ? gPick.t : E.pickSlot(s.lists.outfit, s.mode);
+          var gPick = PRRoll.pickGuarded(s.lists.outfit, s.mode, ctx, s.mood);
+          vals[slot] = gPick ? gPick.t : E.pickSlot(s.lists.outfit, s.mode, s.mood);
         } else {
-          vals[slot] = E.pickSlot(s.lists[slot], s.mode);
+          vals[slot] = E.pickSlot(s.lists[slot], s.mode, s.mood);
         }
       });
       var txt = E.buildPrompt(vals);

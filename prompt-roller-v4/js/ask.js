@@ -1,4 +1,4 @@
-// js/ask.js - Exchange Panel (Export / Ask AI / Import), Inventory, Backup & Self-Test Panels
+// js/ask.js - Exchange Panel (Export / Ask AI / Import), Inventory, Backup & Self-Test Panels (v4.3)
 (function(){
   var E = window.PREngine;
   var R = window.PR_RULES;
@@ -47,6 +47,7 @@
     if(spicy) lines.push("- Start spicy items with ! at the front of the line");
     else lines.push("- All items are fully clothed everyday content, no explicit content");
     lines.push("- End an item with a guard tag when it only fits one situation: [G: in=indoor] or [G: in=outdoor, day=day] or [G: face=front] / [G: face=rear]. Items that fit anywhere get no tag.");
+    lines.push("- End an item with a mood tag when it carries one strong feeling: " + PRRoll.MOODS.map(function(m){ return "[M: " + m + "]"; }).join(" / ") + ". Neutral items that fit any mood get no tag.");
     lines.push("- If a file is attached OR a #list: block is pasted in this message, it lists all my current items. Write only NEW items - none may duplicate or closely match that list.");
     lines.push("- Output ONLY one codeblock with all " + n + " lines, no explanations before or after");
     lines.push("- The first line inside the codeblock must be exactly: #list: " + slot);
@@ -62,7 +63,7 @@
     items.filter(function(it){ return ex.indexOf(it) < 0; }).slice(0, 3 - ex.length).forEach(function(it){ ex.push(it); });
     if(ex.length){
       lines.push("STYLE EXAMPLES (match this style):");
-      ex.forEach(function(it){ lines.push((it.x ? "!" : "") + it.t + (it.g ? PRRoll.guardText(it.g) : "")); });
+      ex.forEach(function(it){ lines.push((it.x ? "!" : "") + it.t + (it.g ? PRRoll.guardText(it.g) : "") + (it.m ? " [M: " + it.m + "]" : "")); });
       lines.push("");
       lines.push("Write " + n + " new items in this exact style, different from the examples.");
     }
@@ -83,7 +84,7 @@
     h += "<div class='row' style='align-items:center'><label class='spicy' style='flex:1'><input type='checkbox' id='exSpicyChk' checked> include spicy (!)</label>";
     h += "<button class='btn sm' id='btnExCopyReq'>📋 Copy request</button></div>";
     h += "<div class='sect' style='margin-top:12px'>Import</div>";
-    h += "<textarea id='exBox' placeholder='paste items or an AI answer codeblock here\n#list: light\nwarm ceiling lamp glow [G: in=indoor, day=night]\n!spicy item' style='min-height:120px'></textarea>";
+    h += "<textarea id='exBox' placeholder='paste items or an AI answer codeblock here\n#list: light\nwarm ceiling lamp glow [G: in=indoor, day=night]\n!spicy item [M: tease]' style='min-height:120px'></textarea>";
     h += "<div class='row' style='margin-top:8px'><button class='btn sm' id='btnExImport' style='background:var(--acc)'>📥 Import lines</button>";
     h += "<button class='btn sm' id='btnExPickFile'>📂 Import file</button>";
     h += "<button class='btn sm' id='btnExClearBox'>✕ Clear box</button>";

@@ -1,8 +1,8 @@
-// js/ui.js - View Rendering & State Store (v4.2 roll modes: sfw / mix / nsfw)
+// js/ui.js - View Rendering & State Store (v4.3 roll modes + mood filter)
 (function(){
   var E = window.PREngine;
   var STORAGE_KEY = "prompt_roller_v4_state";
-  var S = { mode: "mix", current: {}, locked: {}, custom: {}, lists: {}, presets: [] };
+  var S = { mode: "mix", mood: "any", current: {}, locked: {}, custom: {}, lists: {}, presets: [] };
 
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
 
@@ -12,6 +12,7 @@
       S.mode = (S.spicy === false) ? "sfw" : "mix";
     }
     if(S.spicy !== undefined) delete S.spicy;
+    if(!S.mood) S.mood = "any";
   }
 
   function initStore(){
@@ -20,7 +21,7 @@
     if(raw){ try { S = JSON.parse(raw); } catch(e){ S = null; } }
     if(!S || !S.lists || !Object.keys(S.lists).length){
       S = {
-        mode: "mix", current: {}, locked: {}, custom: {},
+        mode: "mix", mood: "any", current: {}, locked: {}, custom: {},
         lists: Object.assign({}, clone(window.SEED_SUBJECT||{}), clone(window.SEED_SCENE||{})),
         presets: clone(window.SEED_PRESETS || [])
       };
@@ -108,26 +109,35 @@
     });
   }
 
+  // Mood dropdown: "Any mood" + the 6 built-in moods + the saved mood if custom.
+  function renderMoodSel(){
+    var ms = document.getElementById("moodSel");
+    if(!ms) return;
+    var cur = S.mood || "any";
+    var list = ["any"].concat((window.PRRoll && PRRoll.MOODS) || []);
+    if(cur !== "any" && list.indexOf(cur) < 0) list.push(cur);
+    ms.innerHTML = list.map(function(m){
+      return "<option value='" + m + "'>" + (m === "any" ? "Any mood" : m.charAt(0).toUpperCase() + m.slice(1)) + "</option>";
+    }).join("");
+    ms.value = cur;
+  }
+
   function renderAll(){
     normMode();
     renderSlots("slotsSubject", E.SLOTS_SUBJECT);
     renderSlots("slotsScene", E.SLOTS_SCENE);
     renderPresets();
+    renderMoodSel();
     renderPrompt();
     var seg = document.getElementById("modeSeg");
-    if(seg){
-      var btns = seg.querySelectorAll(".mbtn");
-      for(var i = 0; i < btns.length; i++){
-        btns[i].classList.toggle("on", btns[i].getAttribute("data-mode") === S.mode);
-      }
-    }
+    if(seg) seg.querySelectorAll(".mbtn").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-mode") === S.mode); });
   }
 
   function rollGroup(slots){
     var hasChain = !!(window.PRRoll && PRRoll.rollScene);
     var roll = null;
     if(hasChain && slots.indexOf("venue") >= 0){
-      roll = PRRoll.rollScene(S.lists, S.mode, S.locked, S.current);
+      roll = PRRoll.rollScene(S.lists, S.mode, S.locked, S.current, S.mood);
     }
     var ctx = roll ? roll.ctx : (hasChain ? PRRoll.ctxFromCurrent(S.lists, S.current) : null);
     slots.forEach(function(s){
@@ -137,10 +147,10 @@
         return;
       }
       if(s === "outfit" && hasChain){
-        var gPick = PRRoll.pickGuarded(S.lists.outfit, S.mode, ctx);
+        var gPick = PRRoll.pickGuarded(S.lists.outfit, S.mode, ctx, S.mood);
         S.current[s] = gPick ? gPick.t : "";
       } else {
-        S.current[s] = E.pickSlot(S.lists[s], S.mode);
+        S.current[s] = E.pickSlot(S.lists[s], S.mode, S.mood);
       }
       delete S.custom[s];
     });
@@ -163,10 +173,10 @@
             (E.SLOTS_SCENE.indexOf(slot) >= 0 || slot === "outfit");
           if(guardAware){
             var ctx = PRRoll.ctxFromCurrent(S.lists, S.current);
-            var gPick = PRRoll.pickGuarded(S.lists[slot], S.mode, ctx);
+            var gPick = PRRoll.pickGuarded(S.lists[slot], S.mode, ctx, S.mood);
             S.current[slot] = gPick ? gPick.t : "";
           } else {
-            S.current[slot] = E.pickSlot(S.lists[slot], S.mode);
+            S.current[slot] = E.pickSlot(S.lists[slot], S.mode, S.mood);
           }
           delete S.custom[slot]; saveStore(); renderAll();
         }

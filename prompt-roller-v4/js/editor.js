@@ -39,6 +39,7 @@
       h += "<div class='item'><div class='tx" + (expanded[expKey] ? " full" : "") + "' data-eact='exp' data-slot='" + slot + "' data-idx='" + idx + "'>";
       h += (it.v ? "<span class='dot v'></span>" : "<span class='dot t'></span>") + (it.x ? "🔥 " : "") + esc(it.t);
       if(it.g) h += "<div class='note guard'>[G: " + esc(Object.keys(it.g).map(function(k){ return k + "=" + it.g[k]; }).join(", ")) + "]</div>";
+      if(it.m) h += "<div class='note mood'>[M: " + esc(it.m) + "]</div>";
       if(it.n) h += "<div class='note'>" + esc(it.n) + "</div>";
       h += "</div><button class='x' data-eact='del' data-slot='" + slot + "' data-idx='" + idx + "'>✕</button></div>";
     });
@@ -84,10 +85,10 @@
     if(val === "__test"){ box.innerHTML = A.renderTestPanel(testRan); return; }
     if(val === "__scenes"){ box.innerHTML = renderScenesEditor(); return; }
     var s = window.PRUI.getState(), list = s.lists[val] || [], q = editQ[val] || "";
-    var h = "<div class='hint'><b>" + list.length + " items</b> in [" + (SLOT_NAMES[val]||val) + "] · <span class='dot v'></span>verified · 🔥 spicy</div>";
+    var h = "<div class='hint'><b>" + list.length + " items</b> in [" + (SLOT_NAMES[val]||val) + "] · <span class='dot v'></span>verified · 🔥 spicy · [M:] mood</div>";
     h += "<div class='row' style='margin-bottom:8px'><input type='text' id='searchEdit' placeholder='🔍 search this list...' value='" + esc(q) + "' style='flex:1'></div>";
     h += "<div id='editItemsList'>" + itemsHTML(val, q) + "</div>";
-    h += "<textarea id='addSingleBox' placeholder='new item text (leading ! = spicy, * = verified, end with [G: in=indoor] to guard)' style='min-height:70px;margin-top:8px'></textarea>";
+    h += "<textarea id='addSingleBox' placeholder='new item text (leading ! = spicy, * = verified, end with [G: in=indoor] to guard or [M: tease] to set a mood)' style='min-height:70px;margin-top:8px'></textarea>";
     h += "<div class='row' style='margin-top:8px'><button class='btn sm' data-eact='addSingle' data-slot='" + val + "'>+ Add item</button>";
     h += "<button class='btn sm danger' data-eact='clearAll' data-slot='" + val + "'>Clear all (" + list.length + ")</button></div>";
     box.innerHTML = h;

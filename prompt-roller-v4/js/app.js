@@ -1,4 +1,4 @@
-// js/app.js - App Controller, Tabs & Watchdog Verification (v4.2 roll modes)
+// js/app.js - App Controller, Tabs & Watchdog Verification (v4.3 roll modes + mood filter)
 (function(){
   function showTab(t){
     ["roll", "batch", "edit"].forEach(function(k){
@@ -46,6 +46,13 @@
       PRUI.saveStore(); PRUI.renderAll();
       PRUI.toast("roll mode: " + s.mode);
     });
+    var moodSel = document.getElementById("moodSel");
+    if(moodSel) moodSel.onchange = function(){
+      var s = PRUI.getState();
+      s.mood = this.value || "any";
+      PRUI.saveStore();
+      PRUI.toast("mood: " + s.mood);
+    };
     document.getElementById("btnRollAll").onclick = function(){ PRUI.rollGroup(PREngine.ALL_SLOTS); };
     document.getElementById("btnRollSub").onclick = function(){ PRUI.rollGroup(PREngine.SLOTS_SUBJECT); };
     document.getElementById("btnRollScn").onclick = function(){ PRUI.rollGroup(PREngine.SLOTS_SCENE); };
