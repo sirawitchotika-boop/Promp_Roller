@@ -1,0 +1,22 @@
+// mood-import.txt - v4.3 gate fixture: mood-tagged test items
+// How to use: Edit tab -> Exchange -> Auto-detect -> paste this whole file -> Import lines
+// Expected: Added 15 - skipped 0 duplicates - 0 bad - 0 blocked - box cleared
+#list: face
+her sly wink with one eyebrow raised [M: tease]
+her soft devoted gaze up at him [M: devoted]
+her cold flat stare past him [M: cold]
+her shy glance away with pink cheeks [M: shy]
+her calm neutral reading face
+#list: action
+she leans in whispering against his ear [M: devoted]
+she taps his chest with one finger, smirking [M: tease]
+she turns her back to him silently [M: cold]
+she is mid-step walking past him
+#list: hands
+her left hand tugging his tie closer [M: tease]
+her right hand pressed to her own chest [M: shy]
+both hands wrapped around her coffee mug
+#list: prop
+a torn love letter on the floor [M: devoted]
+his phone face-down on the table [M: cold]
+a shared umbrella leaning by the door

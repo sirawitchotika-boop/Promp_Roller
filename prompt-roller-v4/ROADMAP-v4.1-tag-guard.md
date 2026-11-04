@@ -1,65 +1,65 @@
-# Prompt Roller v4.1 — Tag-Guard Roll System (Executive Summary & Roadmap)
+# Prompt Roller — Version History & Roadmap (v4.1 guard chain · v4.2 roll modes · v4.3 mood tags)
 
-Status: Phase 5 delivered — pending Gate 3. Phases 0-4 passed.
-Last updated: 2026-11-03
+Status: v4.3 complete — all gates passed. Deployed on GitHub Pages (auto-deploy on push to main).
+Last updated: 2026-11-04
 
 ---
 
-## 1. Problem
+## 1. v4.1 — Tag-Guard Roll System (2026-11-03, complete)
 
-Rolling all 14 slots as independent dice produces conflicting prompts (example: man in a necktie on a car, library background). Root cause: scene slots (action, hands, prop, venue, camera) each secretly assume their own mini-scene, so independent rolls fight each other. Subject slots (hair, eyes, body, skin, face) are pure descriptors and never conflict.
+**Problem:** Rolling all 14 slots as independent dice produces conflicting prompts (example: man in a necktie on a car, library background). Root cause: scene slots each secretly assume their own mini-scene, so independent rolls fight each other.
 
-## 2. Solution (chosen: Option B — tag-guard roll chain)
-
-- Items gain an optional `g` (guard) field: `{"t": "...", "v": 1, "g": {"face": "rear", "in": "indoor"}}`
-- Scene slots roll as a linked chain in fixed order: **venue -> action -> hands -> prop -> light -> depth -> camera**
+**Solution (Option B — tag-guard roll chain):**
+- Items gain an optional `g` (guard) field. Scene slots roll as a linked chain: **venue -> action -> hands -> prop -> light -> depth -> camera**.
 - Each roll filters candidates by guards already rolled. No match -> fall back to untagged items (never a dead roll).
-- Untagged items = always safe, roll freely. Fully backward compatible.
-- Subject slots stay free dice; outfit is guard-aware. Presets bypass the chain.
+- Untagged items = always safe. Fully backward compatible. Presets bypass the chain.
 
-## 3. Decisions (agreed with Boss)
+**Phases 0-5:** all DONE, gates passed. Suite grew 20 -> 25 checks. 247 items deduped + tagged via partial-JSON restore.
 
-| Topic | Decision |
-|---|---|
-| Tag vocabulary | Minimal 3 keys now: `face`, `in`, `day`. Schema open-ended — `pose`, `solo` later without code changes. |
-| Code placement | `js/engine-roll.js` (guard tags + roll chain). `engine.js` only gained 2 hardening lines. |
-| Hands slot | New action items carry their own hands wording. Hands slot stays for universal-safe items. Slot never deleted. |
-| Import syntax | `[G: key=value]` suffix; malformed brackets stripped; codeblock fences skipped. |
-| Data tagging | Done via partial-JSON restore (`restore-tagged.json`, lists only) — deduped + tagged in one pass. |
-| IO design | Hybrid: export = one-tap dated .txt download; import = paste box + file picker + clear button. |
-| Code quality | No lazy code. Optimized, near-zero technical debt. Full-file deliveries only. |
-| Docs language | 100% English everywhere (Boss standing order 2026-10-31). |
+## 2. v4.2 — Roll Modes (2026-11-03/04, complete)
 
-## 4. Phases (all numbering from 0)
+**Problem:** the old Spicy ON/OFF toggle was binary — no way to roll SFW-only, NSFW-only, or both.
 
-- **Phase 0 — Prep:** DONE. Backup, tag vocabulary locked.
-- **Phase 1 — Schema + parser:** DONE, Gate 1 passed. `[G:]` survives text import/export + JSON backup/restore.
-- **Phase 2 — Engine pipeline:** DONE, Gate 2 passed. Roll chain in `engine-roll.js`, wired into Roll tab + Batch. Watchdog 13 markers. Hybrid IO included.
-- **Phase 3 — UI + Ask AI:** DONE (bundled early). Tags visible in Edit tab; Ask AI builder requests tagged output.
-- **Phase 4 — Data tagging:** DONE. All 14 lists deduped + tagged via `restore-tagged.json` (247 items, porcelain dropped).
-- **Phase 5 — Self-test + docs + hardening:** DELIVERED. Suite 20 -> 25 checks (guard parse/filter/fallback, fence skip, malformed-guard strip). README + WORKFLOW-GUIDE rewritten. Pending Gate 3.
-- **Phase 6 — Backlog (optional, post-stable):**
-  - Import update-on-tag-match: re-importing "same text + new tag" updates the stored item instead of skipping as duplicate (kills the need for JSON handoffs in future re-tagging rounds).
-  - Web Share API button (send exports straight to GitHub/Drive via Android share sheet).
-  - Extended tags (`pose`, `solo`) — only if conflicts still slip through.
-- **Phase 7 — Pre-stable review (planned):** Boss brings the latest full file set -> full code review: fix issues, cut redundant features, small UI/UX polish. Then deploy (Cloudflare Pages).
+**Solution:** one shared pool filter (`PRRoll.filterPool`) + a 3-button header segment:
+- `SFW` = clean items only · `NSFW` = spicy items only (fallback to all if a slot has none) · `Mix` = everything.
+- Legacy `spicy` boolean auto-migrates to `mode` on first load. Old backups and `!` imports keep working.
+- Gate A passed 2026-11-03 (modes verified on Roll + Batch, self-test 29/29).
 
-## 5. Gate tests (human = Boss, on phone)
+**Also this round:** deploy workflow gained a `push` trigger on main — GitHub Pages now auto-deploys on every push (was manual-only `workflow_dispatch`, which caused a "site not updating" incident).
 
-- **Gate 1 (Phase 1): PASSED** — fixture import/export round trip, tags intact.
-- **Gate 2 (Phase 2): PASSED** — no mismatched combos, untagged items still roll, boot badge green.
-- **Gate 4 verify (Phase 4): PASSED** — restore, counts 247, tags visible, roll checks clean.
-- **Gate 3 (Phase 5, PENDING):** 1) Self-test 25/25. 2) Batch of 10 -> human read -> zero scene chaos. 3) Ask AI round trip: request -> external AI -> paste answer -> tags import correctly, no junk lines.
+## 3. v4.3 — Mood Tags (2026-11-04, complete)
 
-## 6. Constraints & rules
+**Problem:** no way to filter rolls by feeling (tease / devoted / cold ...).
+
+**Solution:** `[M: mood]` end-of-line tag + header mood dropdown:
+- Fixed mood list: devoted / femdom / tease / shy / cold / jealous (`PRRoll.MOODS`, open schema).
+- Selected mood = only mood-tagged + untagged items roll (same safety rule as guards). Never a dead roll.
+- Presets carry moods too: `#preset: Name [M: tease]` on import, auto-tag on save, dropdown filters by mood.
+- Ask AI requests teach the `[M:]` tag; Edit tab shows purple `[M: x]` lines.
+
+**Phases & gates:**
+- **B1 Engine** (parse/filter/tests): DONE, gate passed. Suite 29 -> 35.
+- **B2 UI** (dropdown, state, Ask AI, Edit display): DONE, gate passed (mood-import.txt fixture, 15 items).
+- **C Presets** (mood on presets): DONE, gate passed. Suite 35 -> 37. One bug found & fixed during gate: mood change did not re-render the preset dropdown (missing `renderAll()` in the handler).
+- **D Docs:** README + WORKFLOW-GUIDE synced to v4.3, mood-import.txt added to repo.
+
+## 4. Backlog (optional, post-stable)
+
+- Import update-on-tag-match: re-importing "same text + new tag" updates the stored item instead of skipping as duplicate.
+- Web Share API button (send exports straight to GitHub/Drive via Android share sheet).
+- Extended guard tags (`pose`, `solo`) — only if conflicts still slip through.
+- Mood-tagging pass over the existing 247 items (Ask AI round trip or manual) — the filter only bites on tagged items.
+
+## 5. Constraints & rules
 
 - Max 200 lines per file. Plain HTML/CSS/JS, zero build step, zero dependencies.
-- Strict load order; every file registers `window.__EOF["<name>"] = true` (13 files).
+- Strict load order; every file registers `window.__EOF["<name>"] = true` (14 files).
 - NSFW vocabulary NEVER in `js/` data files — seeds stay clean; private items via in-app Import / Ask AI + JSON backup only.
 - Minors words blocked at parser level, always.
 - State lives in localStorage `prompt_roller_v4_state`; JSON backup/restore is the safety net.
+- Working rules for every dev chat: `DEVELOPING-CONTRACT.md` (incl. §9 verify-before-claim & ask-don't-guess).
 
-## 7. Related documents
+## 6. Related documents
 
 - `DEVELOPING-CONTRACT.md` — working rules for every development chat
 - `prompt-roller-v4/README.md` — architecture, load order, schemas, import format
