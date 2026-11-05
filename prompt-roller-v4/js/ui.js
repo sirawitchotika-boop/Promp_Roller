@@ -5,12 +5,11 @@
   var S = { mode: "mix", mood: "any", current: {}, locked: {}, custom: {}, lists: {}, presets: [] };
 
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
   // Old saves store spicy (boolean). Map it to a roll mode once, then drop the key.
   function normMode(){
-    if(S.mode !== "sfw" && S.mode !== "nsfw" && S.mode !== "mix"){
-      S.mode = (S.spicy === false) ? "sfw" : "mix";
-    }
+    if(S.mode !== "sfw" && S.mode !== "nsfw" && S.mode !== "mix") S.mode = (S.spicy === false) ? "sfw" : "mix";
     if(S.spicy !== undefined) delete S.spicy;
     if(!S.mood) S.mood = "any";
   }
@@ -39,8 +38,7 @@
   function toast(msg){
     var el = document.getElementById("toast");
     if(!el) return;
-    el.textContent = msg; el.classList.add("show");
-    clearTimeout(window.__tt);
+    el.textContent = msg; el.classList.add("show"); clearTimeout(window.__tt);
     window.__tt = setTimeout(function(){ el.classList.remove("show"); }, 2000);
   }
 
@@ -56,6 +54,7 @@
     }
   }
 
+  // Slot values are user data - always escaped before innerHTML (H2 fix).
   function renderSlots(containerId, slots){
     var c = document.getElementById(containerId);
     if(!c) return;
@@ -67,7 +66,7 @@
       row.className = "slot" + (isLock ? " locked" : "");
       row.dataset.slot = slot;
       row.innerHTML = "<div class='sname'>" + slot + "</div>" +
-        "<div class='sval' data-act='edit'>" + (isCust ? "<span class='badge'>CUSTOM</span> " : "") + val + "</div>" +
+        "<div class='sval' data-act='edit'>" + (isCust ? "<span class='badge'>CUSTOM</span> " : "") + esc(val) + "</div>" +
         "<div class='sact'>" +
         "<button class='btn sm lk" + (isLock ? " on" : "") + "' data-act='lock'>" + (isLock ? "LOCKED" : "Lock") + "</button>" +
         "<button class='btn sm' data-act='roll'>🎲</button>" +
@@ -98,7 +97,6 @@
   }
 
   // Preset dropdown: SFW mode hides spicy; a selected mood hides differently-tagged presets.
-  // Untagged presets always show (same rule as items).
   function renderPresets(){
     var sel = document.getElementById("presetSel");
     if(!sel) return;
@@ -119,7 +117,7 @@
     var list = ["any"].concat((window.PRRoll && PRRoll.MOODS) || []);
     if(cur !== "any" && list.indexOf(cur) < 0) list.push(cur);
     ms.innerHTML = list.map(function(m){
-      return "<option value='" + m + "'>" + (m === "any" ? "Any mood" : m.charAt(0).toUpperCase() + m.slice(1)) + "</option>";
+      return "<option value='" + esc(m) + "'>" + (m === "any" ? "Any mood" : esc(m.charAt(0).toUpperCase() + m.slice(1))) + "</option>";
     }).join("");
     ms.value = cur;
   }

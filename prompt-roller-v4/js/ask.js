@@ -54,7 +54,7 @@
     lines.push("");
     lines.push("WRITING RULES:");
     lines.push("- " + (ASK_RULES[slot] || "Keep each item short and visual, simple words."));
-    lines.push("- Never use these words: " + R.BANNED.slice(0, 12).map(function(p){ return p[0]; }).join(", "));
+    lines.push("- Never use these words: " + R.BANNED.map(function(p){ return p[0]; }).join(", "));
     lines.push("- All subjects are adult women, no minors, no school settings");
     lines.push("");
 

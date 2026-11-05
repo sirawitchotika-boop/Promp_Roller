@@ -111,7 +111,12 @@
       var b = e.target.closest("[data-eact]");
       if(!b) return;
       var act = b.dataset.eact, slot = b.dataset.slot, idx = parseInt(b.dataset.idx, 10), s = window.PRUI.getState();
-      if(act === "runtests"){ testRan = true; render(); window.PRUI.toast("self-test: all passed!"); }
+      if(act === "runtests"){
+        testRan = true; render();
+        var list = window.PRTest ? window.PRTest.run() : [];
+        var pass = list.filter(function(r){ return r.pass; }).length;
+        window.PRUI.toast("self-test: " + pass + " / " + list.length + " passed");
+      }
       else if(act === "exp"){ expanded["i:" + slot + idx] = !expanded["i:" + slot + idx]; render(); }
       else if(act === "del"){ s.lists[slot].splice(idx, 1); window.PRUI.saveStore(); window.PRUI.renderAll(); render(); window.PRUI.toast("deleted"); }
       else if(act === "clearAll"){
@@ -125,9 +130,13 @@
         var res = E.parseImport(raw, slot, s.lists, s.presets);
         if(res.blocked > 0){ alert("BLOCKED: Prohibited minors word!"); return; }
         if(res.added > 0){
-          s.lists[slot] = (s.lists[slot] || []).concat(res.itemsByList[slot] || []);
-          ta.value = ""; window.PRUI.saveStore(); window.PRUI.renderAll(); render(); window.PRUI.toast("added " + res.added);
+          // Merge every #list: section found - multi-slot pastes no longer drop items (H3).
+          Object.keys(res.itemsByList).forEach(function(k){ s.lists[k] = (s.lists[k]||[]).concat(res.itemsByList[k]); });
+          if(res.presets && res.presets.length) s.presets = (s.presets||[]).concat(res.presets);
+          ta.value = ""; window.PRUI.saveStore(); window.PRUI.renderAll(); render();
+          window.PRUI.toast("added " + res.added + (res.presetsAdded ? " + " + res.presetsAdded + " presets" : ""));
         } else if(res.duplicates > 0) window.PRUI.toast("skipped duplicate");
+        else window.PRUI.toast("nothing to add");
       } else if(act === "expSc"){ expanded["sc" + idx] = !expanded["sc" + idx]; render(); }
       else if(act === "applySc"){
         var p = s.presets[idx];

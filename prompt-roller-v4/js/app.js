@@ -37,6 +37,8 @@
   }
 
   function bindControls(){
+    // Null-safe binder: a renamed or missing ID can no longer crash boot (L4 fix).
+    function on(id, fn){ var el = document.getElementById(id); if(el) el.onclick = fn; }
     var seg = document.getElementById("modeSeg");
     if(seg) seg.addEventListener("click", function(e){
       var b = e.target.closest(".mbtn");
@@ -53,19 +55,19 @@
       PRUI.saveStore(); PRUI.renderAll();
       PRUI.toast("mood: " + s.mood);
     };
-    document.getElementById("btnRollAll").onclick = function(){ PRUI.rollGroup(PREngine.ALL_SLOTS); };
-    document.getElementById("btnRollSub").onclick = function(){ PRUI.rollGroup(PREngine.SLOTS_SUBJECT); };
-    document.getElementById("btnRollScn").onclick = function(){ PRUI.rollGroup(PREngine.SLOTS_SCENE); };
+    on("btnRollAll", function(){ PRUI.rollGroup(PREngine.ALL_SLOTS); });
+    on("btnRollSub", function(){ PRUI.rollGroup(PREngine.SLOTS_SUBJECT); });
+    on("btnRollScn", function(){ PRUI.rollGroup(PREngine.SLOTS_SCENE); });
 
-    document.getElementById("btnApplyPreset").onclick = function(){
+    on("btnApplyPreset", function(){
       var sel = document.getElementById("presetSel");
       var s = PRUI.getState(), p = s.presets[parseInt(sel.value, 10)];
       if(p && p.values){
         PREngine.SLOTS_SCENE.forEach(function(slot){ if(p.values[slot]) s.current[slot] = p.values[slot]; });
         PRUI.saveStore(); PRUI.renderAll(); PRUI.toast("preset applied");
       }
-    };
-    document.getElementById("btnSavePreset").onclick = function(){
+    });
+    on("btnSavePreset", function(){
       var name = (document.getElementById("presetName").value||"").trim();
       if(!name){ alert("Enter preset name"); return; }
       var s = PRUI.getState(), vals = {};
@@ -76,7 +78,7 @@
       document.getElementById("presetName").value = "";
       PRUI.saveStore(); PRUI.renderAll(); if(window.PREdit) window.PREdit.fillDropdown();
       PRUI.toast("preset saved" + (moodTag ? " [M: " + moodTag + "]" : ""));
-    };
+    });
   }
 
   window.addEventListener("DOMContentLoaded", initApp);

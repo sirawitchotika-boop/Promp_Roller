@@ -1,5 +1,5 @@
 // js/data-scene.js - Scene Lists (7 slots, 100% SFW baseline)
-(function(){
+(function() {
   window.SEED_SCENE = {
     camera: [
       { t: "Eye level view", v: 1, n: "verified plug" },
@@ -26,7 +26,8 @@
       { t: "she is straddling a chair backward, her arms folded on the backrest" },
       { t: "she is stepping out of the shower, one foot on the tile edge" },
       { t: "she is doing a standing stretch, one hand flat on the wall, one leg swung back" },
-      { t: "she is pouring a drink, the stream mid-fall" }
+      { t: "she is pouring a drink, the stream mid-fall" },
+      { t: "she is standing with her legs apart, her weight shifted onto one leg", n: "pairs with the through-her-legs camera (R9)" }
     ],
     hands: [
       { t: "her left hand in her hair, her right hand holding a drink" },

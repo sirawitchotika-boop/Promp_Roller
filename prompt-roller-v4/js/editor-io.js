@@ -2,6 +2,13 @@
 (function(){
   var E = window.PREngine, A = window.PRAsk, SLOT_NAMES = A.SLOT_NAMES;
 
+  // Shared timestamp (YYYYMMDD-HHMMSS) for every downloaded file name.
+  function p2(n){ return (n < 10 ? "0" : "") + n; }
+  function stamp(){
+    var d = new Date();
+    return "" + d.getFullYear() + p2(d.getMonth()+1) + p2(d.getDate()) + "-" + p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds());
+  }
+
   function wireExchange(s, applyImportResult, rerender){
     var slotSel = document.getElementById("exSlotSel");
     function curSlot(){ return slotSel.value || null; }
@@ -12,10 +19,8 @@
     document.getElementById("btnExDownload").onclick = function(){
       var slot = curSlot();
       var txt = E.exportText(s.lists, slot, s.presets);
-      var d = new Date(); function p(n){ return (n < 10 ? "0" : "") + n; }
-      var stamp = "" + d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
       var blob = new Blob([txt], { type: "text/plain" }), u = URL.createObjectURL(blob), a = document.createElement("a");
-      a.href = u; a.download = "prompt-roller-io-" + (slot || "all") + "-" + stamp + ".txt"; a.click();
+      a.href = u; a.download = "prompt-roller-io-" + (slot || "all") + "-" + stamp() + ".txt"; a.click();
       setTimeout(function(){ URL.revokeObjectURL(u); }, 1500);
       window.PRUI.toast("downloaded " + (slot || "all"));
     };
@@ -51,14 +56,24 @@
     document.getElementById("btnDlBackup").onclick = function(){
       var blob = new Blob([JSON.stringify(s, null, 2)], { type: "application/json" });
       var u = URL.createObjectURL(blob), a = document.createElement("a");
-      a.href = u; a.download = "prompt-roller-backup.json"; a.click();
+      a.href = u; a.download = "prompt-roller-backup-" + stamp() + ".json"; a.click();
+      setTimeout(function(){ URL.revokeObjectURL(u); }, 1500);
     };
     document.getElementById("btnPickBackup").onclick = function(){ document.getElementById("fileBackupIn").click(); };
     document.getElementById("fileBackupIn").onchange = function(ev){
       var f = ev.target.files[0]; if(!f) return;
       var r = new FileReader();
       r.onload = function(evt){
-        try { Object.assign(s, JSON.parse(evt.target.result)); window.PRUI.saveStore(); window.PRUI.renderAll(); rerender(); alert("Backup restored!"); }
+        try {
+          var parsed = JSON.parse(evt.target.result);
+          // Pre-hooktail backups carry no hook/tail key - drop the stale ones so seed() restores defaults.
+          if(parsed && parsed.hook === undefined) delete s.hook;
+          if(parsed && parsed.tail === undefined) delete s.tail;
+          Object.assign(s, parsed);
+          window.PRUI.saveStore();
+          if(window.PRHookTail) window.PRHookTail.seed();
+          window.PRUI.renderAll(); rerender(); alert("Backup restored!");
+        }
         catch(err){ alert("Invalid backup JSON file"); }
       };
       r.readAsText(f);

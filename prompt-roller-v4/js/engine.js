@@ -1,6 +1,9 @@
 // js/engine.js - Core Engine (Build, Roll, Rules, Storage, Import/Export + #preset: + [G:] + [M:] tags)
 (function(){
   var R = window.PR_RULES;
+  // Hot-path regexes compiled ONCE at load (was: rebuilt on every validate / checkMinors call).
+  var MINORS_RE = R.MINORS.map(function(m){ return new RegExp("(?:^|\\W)" + m.replace(/ /g, "\\s+") + "(?:$|\\W)", "i"); });
+  var BANNED_RE = R.BANNED.map(function(b){ return { re: new RegExp("(?:^|\\W)" + b[0].replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?:$|\\W)", "i"), w: b[0], why: b[1] }; });
   var SLOTS_SUBJECT = ["body", "hairC", "hairS", "eyes", "skin", "face", "outfit"];
   var SLOTS_SCENE = ["camera", "action", "hands", "light", "prop", "venue", "depth"];
   var ALL_SLOTS = SLOTS_SUBJECT.concat(SLOTS_SCENE);
@@ -11,10 +14,8 @@
     checkMinors: function(text){
       if(!text) return null;
       var str = String(text).toLowerCase();
-      for(var i = 0; i < R.MINORS.length; i++){
-        var m = R.MINORS[i];
-        var re = new RegExp("(?:^|\\W)" + m.replace(/ /g, "\\s+") + "(?:$|\\W)", "i");
-        if(re.test(str)) return m;
+      for(var i = 0; i < MINORS_RE.length; i++){
+        if(MINORS_RE[i].test(str)) return R.MINORS[i];
       }
       return null;
     },
@@ -38,9 +39,8 @@
     validate: function(current, fullPrompt){
       var warns = [], cur = current || {}, prompt = fullPrompt || this.buildPrompt(cur);
       var pLower = prompt.toLowerCase();
-      R.BANNED.forEach(function(b){
-        var re = new RegExp("(?:^|\\W)" + b[0].replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?:$|\\W)", "i");
-        if(re.test(pLower)) warns.push("⚠️ Banned word '" + b[0] + "': " + b[1]);
+      BANNED_RE.forEach(function(b){
+        if(b.re.test(pLower)) warns.push("⚠️ Banned word '" + b.w + "': " + b.why);
       });
       var cObj = {
         outfit: (cur.outfit||"").toLowerCase(), camera: (cur.camera||"").toLowerCase(),

@@ -49,9 +49,11 @@
         }
       });
       var txt = E.buildPrompt(vals);
-      batchItems.push({ values: vals, text: txt, copied: false });
+      // Warnings validated ONCE per card at roll time, cached for every render (M4 fix).
+      batchItems.push({ values: vals, text: txt, copied: false, warns: E.validate(vals, txt) });
     }
     batchIdx = 0;
+    expanded = {};
     renderBatch();
     window.PRUI.toast("rolled 10 batch prompts");
   }
@@ -70,7 +72,7 @@
     if(batchIdx >= n) batchIdx = n - 1;
 
     var it = batchItems[batchIdx];
-    var warns = E.validate(it.values, it.text);
+    var warns = it.warns || [];
     var h = "<div class='card'>";
     h += "<div class='bhead'>#" + (batchIdx + 1) + " / " + n + " · " + it.text.length + " chars";
     if(warns.length) h += " · <span class='flag'>⚠ " + warns.length + " warning(s)</span>";
@@ -86,7 +88,7 @@
 
     var warnIndices = [];
     batchItems.forEach(function(item, idx){
-      if(E.validate(item.values, item.text).length) warnIndices.push("#" + (idx + 1));
+      if((item.warns || []).length) warnIndices.push("#" + (idx + 1));
     });
     if(qa){
       qa.textContent = warnIndices.length ? ("Cards with warnings: " + warnIndices.join(", ")) : "✓ All 10 batch prompts clean (0 warnings)";
