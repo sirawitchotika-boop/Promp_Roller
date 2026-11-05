@@ -25,9 +25,11 @@ prompt-roller-v4/
     ├── data-scene.js     # SEED_SCENE: 7 scene slot seed arrays (camera, action, hands, light, prop, venue, depth)
     ├── presets.js        # SEED_PRESETS: 6 SFW scene presets (Spicy presets imported via #preset:)
     ├── engine-roll.js    # PRRoll: roll modes + mood filter + [G:] guard tags + guarded scene roll chain (v4.3)
-    ├── engine.js         # PREngine: Prompt assembly order, {c} interpolation, validation, import/export parser
+    ├── engine.js         # PREngine: prompt assembly, {c} interpolation, validation, roll pick (parser delegated)
+    ├── import.js         # PRImport: #list:/#preset: import + export line parser (split from engine.js, v4.4)
     ├── test.js           # PRTest: 37-check in-app self-test suite running on isolated mock data
-    ├── ui.js             # PRUI: State store (localStorage), Roll tab rendering, Lock/Custom slot handlers
+    ├── ui.js             # PRUI: State store (localStorage), roll actions, Lock/Custom slot handlers
+    ├── render.js         # PRRender: Roll tab view rendering (split from ui.js, v4.4)
     ├── batch.js          # PRBatch: 10-card Batch roller (unique hair/eyes per set, mode + mood aware)
     ├── ask.js            # PRAsk: Exchange panel (export / Ask AI request builder / import), Inventory, Backup, Self-Test panels
     ├── editor.js         # PREdit: Edit tab controller, item search/filter, single add/delete & clear list
@@ -40,7 +42,7 @@ prompt-roller-v4/
 
 ## 2. Script Load Order & Dependency Graph
 
-Scripts in `index.html` **MUST** load in this exact sequence. Every script registers `window.__EOF["<name>"] = true` at its final line. The watchdog in `app.js` verifies all 14 markers.
+Scripts in `index.html` **MUST** load in this exact sequence. Every script registers `window.__EOF["<name>"] = true` at its final line. The watchdog in `app.js` verifies all 16 markers.
 
 ```text
 [1. data-rules.js]   --> exports window.PR_RULES
@@ -52,23 +54,29 @@ Scripts in `index.html` **MUST** load in this exact sequence. Every script regis
        ▼
 [6. engine.js]       --> uses PR_RULES, PRRoll --> exports window.PREngine
        │
-       ├──► [7. test.js]     --> uses PREngine, PRRoll, PR_RULES --> exports window.PRTest
+       ├──► [7. import.js]  --> uses PREngine, PRRoll --> exports window.PRImport
+       │         (PREngine.parseImport / exportText delegate here at call time)
+       │
+       ├──► [8. test.js]    --> uses PREngine, PRRoll, PR_RULES --> exports window.PRTest
        │
        ▼
-[8. ui.js]           --> uses PREngine, PRRoll, SEED_* --> exports window.PRUI (owns State 'S')
+[9. ui.js]           --> uses PREngine, PRRoll, SEED_* --> exports window.PRUI (owns State 'S')
        │
-       ├──► [9. batch.js]    --> uses PREngine, PRRoll, PRUI --> exports window.PRBatch
-       ├──► [10. ask.js]     --> uses PREngine, PR_RULES, PRRoll, PRUI --> exports window.PRAsk
-       └► [11. editor.js]  --> uses PREngine, PRUI, PRAsk --> exports window.PREdit
+       ├──► [10. render.js] --> uses PREngine, PRUI --> exports window.PRRender
+       │         (PRUI.renderAll / renderPrompt / onOutEdit delegate here at call time)
+       │
+       ├──► [11. batch.js]  --> uses PREngine, PRRoll, PRUI --> exports window.PRBatch
+       ├──► [12. ask.js]    --> uses PREngine, PR_RULES, PRRoll, PRUI --> exports window.PRAsk
+       └► [13. editor.js]   --> uses PREngine, PRUI, PRAsk --> exports window.PREdit
        │        │
        │        ▼
-       │   [12. editor-io.js] --> uses PREngine, PRAsk, PRUI --> exports window.PREditIO
+       │   [14. editor-io.js] --> uses PREngine, PRAsk, PRUI --> exports window.PREditIO
        │
        ▼
-[13. hooktail.js]    --> exports window.PRHookTail
+[15. hooktail.js]    --> exports window.PRHookTail
        │
        ▼
-[14. app.js]         --> Watchdog checks all 14 __EOF markers --> initializes PRUI, PRBatch, PREdit
+[16. app.js]         --> Watchdog checks all 16 __EOF markers --> initializes PRUI, PRBatch, PREdit
 ```
 
 ---
@@ -131,6 +139,8 @@ Scene slots roll as a linked chain in fixed order: **venue -> action -> hands ->
 
 ## 4. Import / Export Line Format Specification (`#list:` & `#preset:`)
 
+Parser lives in `js/import.js` (`PRImport`); the public API stays on `PREngine.parseImport` / `PREngine.exportText`.
+
 ```text
 #list: hairS
 her {c} hair in a french twist
@@ -158,13 +168,13 @@ One screen for the whole AI round trip, sharing one slot dropdown:
 - **Export:** `Copy slot` (clipboard) or `Download .txt` (auto filename `prompt-roller-io-<slot|all>-YYYYMMDD-HHMMSS.txt`). Auto-detect = all 14 slots + presets.
 - **Ask AI:** request builder for the selected slot (count / theme / spicy) — carries format rules, banned words, guard-tag AND mood-tag instructions and 3 style examples.
 - **Import:** paste box + `Import file` (.txt/.md) + `Clear box`. Auto-detect mode reads `#list:` headers.
-- **Backup / restore:** full-state JSON download and file restore (partial JSON with only `lists` merges safely).
+- **Backup / restore:** full-state JSON download (timestamped `prompt-roller-backup-YYYYMMDD-HHMMSS.json`) and file restore (partial JSON with only `lists` merges safely).
 
 ---
 
 ## 5. Gate Test (6-Step Verification)
 
-1. **Boot Badge:** Open `index.html` -> top header shows green `file complete`, no red banner (14 files verified).
+1. **Boot Badge:** Open `index.html` -> top header shows green `file complete`, no red banner (16 files verified).
 2. **Zero-Minors Block:** Tap any slot text on the Roll tab -> type `"a teen girl"` -> blocked immediately with alert naming `"teen"`.
 3. **Roll, Copy & Lock:** Tap `Roll all + copy` -> toast shows `rolled + copied`. Tap `Lock` on any slot -> button turns yellow `LOCKED` -> value stays fixed on next roll.
 4. **Fixture Imports:** Edit tab -> Exchange -> Auto-detect -> paste `hairS-import.txt` -> `Added 30 - skipped 1 duplicates - 0 bad - 0 blocked - box cleared`. Same flow with `mood-import.txt` -> `Added 15 - skipped 0 duplicates - 0 bad - 0 blocked - box cleared`.

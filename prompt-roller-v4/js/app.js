@@ -13,7 +13,7 @@
   window.showTab = showTab;
 
   function initApp(){
-    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine-roll", "engine", "test", "ui", "batch", "ask", "editor", "editor-io", "hooktail", "app"];
+    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine-roll", "engine", "import", "test", "ui", "render", "batch", "ask", "editor", "editor-io", "hooktail", "app"];
     var missing = required.filter(function(f){ return !window.__EOF || !window.__EOF[f]; });
     var badge = document.getElementById("fileBadge");
 
@@ -37,7 +37,7 @@
   }
 
   function bindControls(){
-    // Null-safe binder: a renamed or missing ID can no longer crash boot (L4 fix).
+    // Null-safe binder: a renamed or missing ID can no longer crash boot.
     function on(id, fn){ var el = document.getElementById(id); if(el) el.onclick = fn; }
     var seg = document.getElementById("modeSeg");
     if(seg) seg.addEventListener("click", function(e){
