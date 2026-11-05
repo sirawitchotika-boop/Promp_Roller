@@ -1,6 +1,6 @@
 # Prompt Roller v4.3 — Architecture & Technical Manual
 
-Mobile-first AI Image Prompt Roller & Batch Generator.
+Mobile-first AI Image Prompt Roller.
 Designed for 100% offline execution on Android (Spck Editor / Chrome) and static hosting (GitHub Pages, auto-deploy on push to main).
 
 ---
@@ -11,7 +11,7 @@ Rule: **Max 200 lines per file.** Plain HTML/CSS/JS, zero build step, zero exter
 
 ```text
 prompt-roller-v4/
-├── index.html            # App shell, 3-tab layout, mode segment + mood dropdown, script loader & error catcher
+├── index.html            # App shell, 2-tab layout, mode segment + mood dropdown, script loader & error catcher
 ├── style.css             # Dark theme (#14161c), mobile-first UI, 44px touch targets
 ├── hairS-import.txt      # 30-item hairstyle test fixture (+1 duplicate) for Gate Test 4
 ├── guard-import.txt      # Guard-tag test fixture (tagged + untagged items) for v4.1 gates
@@ -30,7 +30,6 @@ prompt-roller-v4/
     ├── test.js           # PRTest: 37-check in-app self-test suite running on isolated mock data
     ├── ui.js             # PRUI: State store (localStorage), roll actions, Lock/Custom slot handlers
     ├── render.js         # PRRender: Roll tab view rendering (split from ui.js, v4.4)
-    ├── batch.js          # PRBatch: 10-card Batch roller (unique hair/eyes per set, mode + mood aware)
     ├── ask.js            # PRAsk: Exchange panel (export / Ask AI request builder / import), Inventory, Backup, Self-Test panels
     ├── editor.js         # PREdit: Edit tab controller, item search/filter, single add/delete & clear list
     ├── editor-io.js      # PREditIO: Exchange & Backup panel button wiring
@@ -42,7 +41,7 @@ prompt-roller-v4/
 
 ## 2. Script Load Order & Dependency Graph
 
-Scripts in `index.html` **MUST** load in this exact sequence. Every script registers `window.__EOF["<name>"] = true` at its final line. The watchdog in `app.js` verifies all 16 markers.
+Scripts in `index.html` **MUST** load in this exact sequence. Every script registers `window.__EOF["<name>"] = true` at its final line. The watchdog in `app.js` verifies all 15 markers.
 
 ```text
 [1. data-rules.js]   --> exports window.PR_RULES
@@ -65,18 +64,17 @@ Scripts in `index.html` **MUST** load in this exact sequence. Every script regis
        ├──► [10. render.js] --> uses PREngine, PRUI --> exports window.PRRender
        │         (PRUI.renderAll / renderPrompt / onOutEdit delegate here at call time)
        │
-       ├──► [11. batch.js]  --> uses PREngine, PRRoll, PRUI --> exports window.PRBatch
-       ├──► [12. ask.js]    --> uses PREngine, PR_RULES, PRRoll, PRUI --> exports window.PRAsk
-       └► [13. editor.js]   --> uses PREngine, PRUI, PRAsk --> exports window.PREdit
+       ├──► [11. ask.js]    --> uses PREngine, PR_RULES, PRRoll, PRUI --> exports window.PRAsk
+       └► [12. editor.js]   --> uses PREngine, PRUI, PRAsk --> exports window.PREdit
        │        │
        │        ▼
-       │   [14. editor-io.js] --> uses PREngine, PRAsk, PRUI --> exports window.PREditIO
+       │   [13. editor-io.js] --> uses PREngine, PRAsk, PRUI --> exports window.PREditIO
        │
        ▼
-[15. hooktail.js]    --> exports window.PRHookTail
+[14. hooktail.js]    --> exports window.PRHookTail
        │
        ▼
-[16. app.js]         --> Watchdog checks all 16 __EOF markers --> initializes PRUI, PRBatch, PREdit
+[15. app.js]         --> Watchdog checks all 15 __EOF markers --> initializes PRUI, PREdit
 ```
 
 ---
@@ -92,7 +90,7 @@ Scripts in `index.html` **MUST** load in this exact sequence. Every script regis
 15. `TAIL`: `"No other people, no readable text."` (user-editable, Last)
 
 ### Roll Modes (v4.2) & Mood Filter (v4.3)
-One shared pool filter (`PRRoll.filterPool`) feeds every roll path (Roll tab, single-slot dice, Batch):
+One shared pool filter (`PRRoll.filterPool`) feeds every roll path (Roll tab, single-slot dice):
 - **SFW:** only clean items (no `x` flag) roll. Spicy presets hidden.
 - **NSFW:** only `x`-flagged items roll; a slot with none falls back to its whole pool (never dead).
 - **Mix:** the full pool rolls.
@@ -174,7 +172,7 @@ One screen for the whole AI round trip, sharing one slot dropdown:
 
 ## 5. Gate Test (6-Step Verification)
 
-1. **Boot Badge:** Open `index.html` -> top header shows green `file complete`, no red banner (16 files verified).
+1. **Boot Badge:** Open `index.html` -> top header shows green `file complete`, no red banner (15 files verified).
 2. **Zero-Minors Block:** Tap any slot text on the Roll tab -> type `"a teen girl"` -> blocked immediately with alert naming `"teen"`.
 3. **Roll, Copy & Lock:** Tap `Roll all + copy` -> toast shows `rolled + copied`. Tap `Lock` on any slot -> button turns yellow `LOCKED` -> value stays fixed on next roll.
 4. **Fixture Imports:** Edit tab -> Exchange -> Auto-detect -> paste `hairS-import.txt` -> `Added 30 - skipped 1 duplicates - 0 bad - 0 blocked - box cleared`. Same flow with `mood-import.txt` -> `Added 15 - skipped 0 duplicates - 0 bad - 0 blocked - box cleared`.

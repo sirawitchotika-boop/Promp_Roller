@@ -1,19 +1,18 @@
 // js/app.js - App Controller, Tabs & Watchdog Verification (v4.3 roll modes + mood filter)
 (function(){
   function showTab(t){
-    ["roll", "batch", "edit"].forEach(function(k){
+    ["roll", "edit"].forEach(function(k){
       var v = document.getElementById("view-" + k);
       if(v) v.style.display = (k === t) ? "block" : "none";
       var tab = document.getElementById("tab-" + k);
       if(tab) tab.classList.toggle("on", k === t);
     });
     if(t === "edit" && window.PREdit) window.PREdit.render();
-    if(t === "batch" && window.PRBatch) window.PRBatch.renderBatch();
   }
   window.showTab = showTab;
 
   function initApp(){
-    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine-roll", "engine", "import", "test", "ui", "render", "batch", "ask", "editor", "editor-io", "hooktail", "app"];
+    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine-roll", "engine", "import", "test", "ui", "render", "ask", "editor", "editor-io", "hooktail", "app"];
     var missing = required.filter(function(f){ return !window.__EOF || !window.__EOF[f]; });
     var badge = document.getElementById("fileBadge");
 
@@ -22,7 +21,6 @@
       badge.style.color = "var(--ok)";
       PRUI.init();
       if(window.PRHookTail){ window.PRHookTail.seed(); PRUI.renderAll(); }
-      if(window.PRBatch) window.PRBatch.init();
       if(window.PREdit) window.PREdit.init();
       bindControls();
     } else {

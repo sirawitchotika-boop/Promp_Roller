@@ -1,11 +1,10 @@
-```markdown
 # Prompt Roller v4.3 — Complete User & Workflow Guide
 
 Mobile app manual (Spck Editor / Chrome) and the external-AI vocabulary workflow that never triggers red flags.
 
 ---
 
-## 1. The 3 Main Tabs
+## 1. The 2 Main Tabs
 
 ### Tab 1: `Roll` (random prompt assembly)
 - **Roll mode (SFW / Mix / NSFW):** 3 buttons at the top.
@@ -26,12 +25,7 @@ Mobile app manual (Spck Editor / Chrome) and the external-AI vocabulary workflow
   - **`Lock` / `LOCKED`:** freezes that slot during rolls. Locked scene slots also feed their guard tags into the chain.
   - **`dice` button:** rerolls that single slot (guard-aware for scene slots and outfit; respects mode + mood).
 
-### Tab 2: `Batch` (10 prompts at once)
-- `Rotate all (10)`: 10 prompts, guaranteed unique hair color, hairstyle and eye color per set. Every card rolls its own coherent guard chain. Mode + mood apply to every card.
-- `Subject only (10)`: keeps the current scene, rerolls only the characters.
-- Browse cards with `Prev / Next`, tap text to expand, `Copy #N` per card or `Copy all 10` for the whole set. The QA line at the bottom lists which cards carry warnings.
-
-### Tab 3: `Edit` (vocabulary & system tools)
+### Tab 2: `Edit` (vocabulary & system tools)
 Dropdown options:
 1. **14 vocabulary lists:** live item counts in the dropdown. Search filters (first 50 shown). Tap an item to expand and read its blue `[G:]` guard line, purple `[M:]` mood line and yellow note. `+ Add item` (leading `!` = spicy, `*` = verified, trailing `[G: in=indoor]` = guard, `[M: tease]` = mood). `Clear all` wipes the list (with confirm).
 2. **Exchange (export / Ask AI / import):** ONE screen for the whole AI round trip, sharing one slot dropdown:
@@ -72,4 +66,4 @@ Dropdown options:
    - `js/data-subject.js` and `js/data-scene.js` always contain only clean, standard vocabulary.
 2. **Private vocabulary lives in the app only, via Import + JSON backup:**
    - Add spicy items through the web app (Exchange panel), then `Download backup (.json)` to keep a copy on your phone.
-   - When you need Gemini, Claude, or any AI to upgrade features or fix bugs, you can share the full `.html / .css / .js` code set with 100% safety — no safety-system blocks, ever.
+   - When you need Gemini, Claude, or any AI to upgrade features or fix bugs, you can share the full `.html / .css / .js` code set with 100% safety — no safety-system blocks, ever.  

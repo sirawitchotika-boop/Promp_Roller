@@ -30,7 +30,6 @@
 
   <div class="tabs">
     <div class="tab on" id="tab-roll" onclick="showTab('roll')">Roll</div>
-    <div class="tab" id="tab-batch" onclick="showTab('batch')">Batch</div>
     <div class="tab" id="tab-edit" onclick="showTab('edit')">Edit</div>
   </div>
 
@@ -71,21 +70,6 @@
     <div id="slotsScene"></div>
   </main>
 
-  <main id="view-batch" style="display:none">
-    <div class="card">
-      <div class="row">
-        <button class="half" onclick="PRBatch.gen('all')">🎲 Rotate all (10)</button>
-      </div>
-      <div class="row">
-        <button class="half" onclick="PRBatch.gen('subject')">🎲 Subject only (10)</button>
-        <button class="btn sm" onclick="PRBatch.copyAll()">📋 Copy all 10</button>
-      </div>
-      <div class="hint">One card at a time — Prev / Copy / Next. Locked slots stay fixed in every item.</div>
-    </div>
-    <div id="batchOut"></div>
-    <div class="note" id="batchQA" style="margin:4px 2px 8px"></div>
-  </main>
-
   <main id="view-edit" style="display:none">
     <div class="card">
       <select id="editSel" onchange="PREdit.render()"></select>
@@ -105,7 +89,6 @@
   <script src="js/test.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/render.js"></script>
-  <script src="js/batch.js"></script>
   <script src="js/ask.js"></script>
   <script src="js/editor.js"></script>
   <script src="js/editor-io.js"></script>
