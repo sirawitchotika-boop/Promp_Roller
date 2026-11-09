@@ -66,6 +66,12 @@
       r.onload = function(evt){
         try {
           var parsed = JSON.parse(evt.target.result);
+          var check = window.PRBackup.verify(parsed);
+          if(!check.ok){ alert(check.error); return; }
+          var partial = !parsed.current || !parsed.locked || !parsed.custom || !parsed.presets;
+          var warning = "Restore will REPLACE your current saved lists, presets, locks, and scene. Download a full backup first.";
+          if(partial) warning += "\nThis file is partial; missing fields will be reset.";
+          if(!confirm(warning + "\nContinue?")) return;
           var restore = window.PRBackup.restore(parsed, s);
           if(!restore.ok){ alert(restore.error); return; }
           window.PRUI.saveStore();
