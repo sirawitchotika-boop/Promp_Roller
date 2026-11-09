@@ -24,6 +24,12 @@
         presets: clone(window.SEED_PRESETS || [])
       };
       E.ALL_SLOTS.forEach(function(slot){ S.current[slot] = E.pickSlot(S.lists[slot], S.mode); });
+      var first = PRRoll.rollScene(S.lists, S.mode, {}, S.current, S.mood, S.presets);
+      if(first.matched){
+        Object.keys(first.vals).forEach(function(k){ S.current[k] = first.vals[k]; });
+        if(first.outfit) S.current.outfit = first.outfit;
+        S.sceneOutfit = S.current.outfit || "";
+      }
     }
     if(!Array.isArray(S.presets)) S.presets = clone(window.SEED_PRESETS || []);
     normMode();
@@ -57,7 +63,9 @@
     var hasChain = !!(window.PRRoll && PRRoll.rollScene);
     var roll = null;
     if(hasChain && slots.indexOf("venue") >= 0){
-      roll = PRRoll.rollScene(S.lists, S.mode, S.locked, S.current, S.mood);
+      roll = PRRoll.rollScene(S.lists, S.mode, S.locked, S.current, S.mood, S.presets);
+      if(!roll.matched){ toast("No matching scene preset - unlock a scene slot"); return; }
+      S.sceneOutfit = roll.outfit || S.current.outfit || "";
     }
     var ctx = roll ? roll.ctx : (hasChain ? PRRoll.ctxFromCurrent(S.lists, S.current) : null);
     slots.forEach(function(s){
@@ -67,13 +75,15 @@
         return;
       }
       if(s === "outfit" && hasChain){
-        var gPick = PRRoll.pickGuarded(S.lists.outfit, S.mode, ctx, S.mood);
-        S.current[s] = gPick ? gPick.t : "";
+        if(S.sceneOutfit) S.current[s] = S.sceneOutfit;
       } else {
         S.current[s] = E.pickSlot(S.lists[s], S.mode, S.mood);
       }
       delete S.custom[s];
     });
+    if(roll && roll.matched && roll.outfit && !S.locked.outfit){
+      S.current.outfit = roll.outfit; delete S.custom.outfit;
+    }
     saveStore(); PRRender.renderAll(); copy(document.getElementById("out").value, "rolled + copied");
   }
 
@@ -94,10 +104,24 @@
         else if(act === "roll" && slot){
           var guardAware = window.PRRoll && PRRoll.pickGuarded &&
             (E.SLOTS_SCENE.indexOf(slot) >= 0 || slot === "outfit");
-          if(guardAware){
-            var ctx = PRRoll.ctxFromCurrent(S.lists, S.current);
-            var gPick = PRRoll.pickGuarded(S.lists[slot], S.mode, ctx, S.mood);
-            S.current[slot] = gPick ? gPick.t : "";
+          if(E.SLOTS_SCENE.indexOf(slot) >= 0 && window.PRRoll){
+            var scene = PRRoll.rollScene(S.lists, S.mode, S.locked, S.current, S.mood, S.presets);
+            if(!scene.matched){ toast("No matching scene preset - unlock a scene slot"); return; }
+            Object.keys(scene.vals).forEach(function(k){
+              if(!S.locked[k]){ S.current[k] = scene.vals[k]; delete S.custom[k]; }
+            });
+            S.sceneOutfit = scene.outfit || S.current.outfit || "";
+            if(scene.outfit && !S.locked.outfit){
+              S.current.outfit = scene.outfit; delete S.custom.outfit;
+            }
+          } else if(guardAware){
+            if(slot === "outfit" && S.sceneOutfit){
+              S.current.outfit = S.sceneOutfit;
+            } else {
+              var ctx = PRRoll.ctxFromCurrent(S.lists, S.current);
+              var gPick = PRRoll.pickGuarded(S.lists[slot], S.mode, ctx, S.mood);
+              S.current[slot] = gPick ? gPick.t : "";
+            }
           } else {
             S.current[slot] = E.pickSlot(S.lists[slot], S.mode, S.mood);
           }

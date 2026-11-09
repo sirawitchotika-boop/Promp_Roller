@@ -1,5 +1,14 @@
 # Prompt Roller v4.3 — Architecture & Technical Manual
 
+> **Coherent scenes update:** Active scene slots are camera, action, light and venue.
+> Hands, prop and depth remain stored for old backup compatibility, but are not
+> rolled, shown as active slots or included in generated prompts.
+> A scene roll now selects ONE complete preset and matching outfit when available.
+> Built-in presets have linked outfit choices. New saved presets also store the outfit.
+> Existing imported presets without outfits retain the current outfit.
+> If locked slots exclude every preset, the roll leaves the scene unchanged.
+> The legacy architecture below is retained for reference.
+
 Mobile-first AI Image Prompt Roller.
 Designed for 100% offline execution on Android (Spck Editor / Chrome) and static hosting (GitHub Pages, auto-deploy on push to main).
 

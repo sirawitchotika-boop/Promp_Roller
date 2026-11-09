@@ -86,7 +86,10 @@
         var mKv = line.match(/^([a-zA-Z]+)\s*:\s*(.+)$/);
         if(mKv){
           var sKey = mKv[1].toLowerCase().trim(), sVal = mKv[2].trim();
-          E.SLOTS_SCENE.forEach(function(sc){ if(sc.toLowerCase() === sKey) curPreset.values[sc] = sVal; });
+          // Keep legacy fields for import/export compatibility.
+          E.SLOTS_SCENE.concat(["hands", "prop", "depth", "outfit"]).forEach(function(sc){
+            if(sc.toLowerCase() === sKey) curPreset.values[sc] = sVal;
+          });
         }
         continue;
       }
@@ -131,7 +134,7 @@
     if(!singleSlot && Array.isArray(presets) && presets.length){
       presets.forEach(function(p){
         out.push("#preset: " + (p.x ? "!" : "") + p.name + (p.m ? " [M: " + p.m + "]" : ""));
-        E.SLOTS_SCENE.forEach(function(sc){
+        E.SLOTS_SCENE.concat(["hands", "prop", "depth", "outfit"]).forEach(function(sc){
           if(p.values && p.values[sc]) out.push(sc + ": " + p.values[sc]);
         });
         out.push("");

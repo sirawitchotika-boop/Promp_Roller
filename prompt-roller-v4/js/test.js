@@ -130,6 +130,36 @@
     var pmRe = E.parseImport(pmExp);
     T("preset mood: export -> import round trip", pmRe.presetsAdded === 1 && pmRe.presets[0].m === "cold" && pmRe.presets[0].values.venue === "on a rooftop");
 
+    // Coherence regression tests: unrelated fragments must not mix.
+    T("scene: four active slots", E.SLOTS_SCENE.join(",") === "camera,action,light,venue");
+    var old = { camera: "Eye level view", action: "she is standing",
+      light: "warm lamp", venue: "in a kitchen", hands: "wrong hands",
+      prop: "wrong prop", depth: "wrong depth" };
+    var clean = E.buildPrompt(old);
+    T("scene: retired fragments excluded",
+      ["wrong hands", "wrong prop", "wrong depth"].every(function(x){ return clean.indexOf(x) < 0; }));
+    var p = { name: "Test scene", values: {
+      venue: "in a cafe", action: "she reads a menu", light: "warm ceiling light",
+      camera: "Eye level view", outfit: "a blue jacket" }};
+    var rolled = PRRoll.rollScene({}, "sfw", {}, {}, "any", [p]);
+    T("scene: one coherent preset with linked outfit",
+      rolled.matched && rolled.vals.venue === "in a cafe" &&
+      rolled.vals.action === "she reads a menu" && rolled.outfit === "a blue jacket");
+    var mismatch = PRRoll.rollScene({}, "sfw", { venue: true }, { venue: "in a gym" }, "any", [p]);
+    T("scene: conflicting locks cannot mix scenes",
+      !mismatch.matched && mismatch.vals.venue === "in a gym");
+    T("scene: incomplete preset rejected",
+      !PRRoll.rollScene({}, "sfw", {}, {}, "any", [{ name: "Partial",
+        values: { venue: "at a cafe" } }]).matched);
+    var seedOK = true;
+    for(var si = 0; si < 100; si++){
+      var seed = PRRoll.rollScene({}, "sfw", {}, {}, "any", window.SEED_PRESETS || []);
+      if(!seed.matched || !window.SEED_PRESETS.some(function(preset){
+        return E.SLOTS_SCENE.every(function(k){ return seed.vals[k] === preset.values[k]; });
+      })) seedOK = false;
+    }
+    T("scene: repeated rolls preserve seed preset coherence", seedOK);
+
     return results;
   }
 

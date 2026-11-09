@@ -62,6 +62,9 @@
       var s = PRUI.getState(), p = s.presets[parseInt(sel.value, 10)];
       if(p && p.values){
         PREngine.SLOTS_SCENE.forEach(function(slot){ if(p.values[slot]) s.current[slot] = p.values[slot]; });
+        var outfit = p.values.outfit || PRRoll.DEFAULT_OUTFITS[p.name] || "";
+        s.sceneOutfit = outfit || s.current.outfit || "";
+        if(outfit && !s.locked.outfit) s.current.outfit = outfit;
         PRUI.saveStore(); PRUI.renderAll(); PRUI.toast("preset applied");
       }
     });
@@ -70,6 +73,7 @@
       if(!name){ alert("Enter preset name"); return; }
       var s = PRUI.getState(), vals = {};
       PREngine.SLOTS_SCENE.forEach(function(slot){ vals[slot] = s.current[slot]||""; });
+      vals.outfit = s.current.outfit || ""; // Linked scene clothing.
       // Auto-tag: saving while a mood is selected tags the new preset with it.
       var moodTag = (s.mood && s.mood !== "any") ? s.mood : undefined;
       s.presets.push({ name: name, values: vals, m: moodTag });
