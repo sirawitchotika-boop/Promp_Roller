@@ -150,6 +150,17 @@
       !PRStorage.isValid({ lists: { eyes: "not an array" } }));
     T("Save safety: unsafe keys are rejected",
       !PRStorage.isValid(JSON.parse('{"lists":{"__proto__":[{"t":"x"}]}}')));
+    var badPreset = PRImport.parse('#preset: {"name":"Bad","values":"oops"}',
+      null, { body: [] }, []);
+    T("Save safety: invalid imported JSON presets are rejected",
+      badPreset.presetsAdded === 0 && badPreset.bad === 1);
+    var validPreset = PRImport.parse('#preset: {"name":"Okay","values":{"camera":"a","action":"b","light":"c","venue":"d"}}',
+      null, { body: [] }, []);
+    T("Save safety: valid JSON scene imports still work",
+      validPreset.presetsAdded === 1 && validPreset.bad === 0);
+    var blankPreset = PRImport.parse('#preset: !', null, { body: [] }, []);
+    T("Save safety: empty imported scene names are rejected",
+      blankPreset.presetsAdded === 0 && blankPreset.bad === 1);
     return results;
   };
   window.__EOF = window.__EOF || {};
