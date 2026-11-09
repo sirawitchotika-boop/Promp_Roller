@@ -60,13 +60,7 @@
     on("btnApplyPreset", function(){
       var sel = document.getElementById("presetSel");
       var s = PRUI.getState(), p = s.presets[parseInt(sel.value, 10)];
-      if(p && p.values){
-        PREngine.SLOTS_SCENE.forEach(function(slot){ if(p.values[slot]) s.current[slot] = p.values[slot]; });
-        var outfit = p.values.outfit || PRRoll.DEFAULT_OUTFITS[p.name] || "";
-        s.sceneOutfit = outfit || s.current.outfit || "";
-        if(outfit && !s.locked.outfit) s.current.outfit = outfit;
-        PRUI.saveStore(); PRUI.renderAll(); PRUI.toast("preset applied");
-      }
+      if(p) PRUI.applyPreset(p);
     });
     on("btnSavePreset", function(){
       var name = (document.getElementById("presetName").value||"").trim();
