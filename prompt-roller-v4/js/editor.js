@@ -43,22 +43,22 @@
       var it = p.it, idx = p.idx, expKey = "i:" + slot + idx;
       h += "<div class='item'><button type='button' class='tx" + (expanded[expKey] ? " full" : "") + "' data-eact='exp' data-slot='" + slot + "' data-idx='" + idx + "' aria-expanded='" + !!expanded[expKey] + "'>";
       h += (it.v ? "<span class='dot v'></span>" : "<span class='dot t'></span>") + (it.x ? "🔥 " : "") + esc(it.t);
-      if(it.g) h += "<div class='note guard'>[G: " + esc(Object.keys(it.g).map(function(k){ return k + "=" + it.g[k]; }).join(", ")) + "]</div>";
-      if(it.m) h += "<div class='note mood'>[M: " + esc(it.m) + "]</div>";
-      if(it.n) h += "<div class='note'>" + esc(it.n) + "</div>";
+      if(it.g) h += "<span class='note guard'>[G: " + esc(Object.keys(it.g).map(function(k){ return k + "=" + it.g[k]; }).join(", ")) + "]</span>";
+      if(it.m) h += "<span class='note mood'>[M: " + esc(it.m) + "]</span>";
+      if(it.n) h += "<span class='note'>" + esc(it.n) + "</span>";
       h += "</button><button type='button' class='x' aria-label='Delete " + esc(SLOT_NAMES[slot]||slot) + " item' data-eact='del' data-slot='" + slot + "' data-idx='" + idx + "'>Delete</button></div>";
     });
     return h || "<div class='hint'>No items found in this list.</div>";
   }
   function renderScenesEditor(){
     var s = window.PRUI.getState(), presets = s.presets || [];
-    var h = "<div class='hint'>" + presets.length + " Scene presets — tap Apply to load onto Roll tab, or ✕ to delete.</div>";
+    var h = "<div class='hint'>" + presets.length + " Scene presets — tap Apply to use a scene, or Delete to remove it.</div>";
     presets.forEach(function(sc, idx){
       var prev = E.SLOTS_SCENE.map(function(k){ return (sc.values && sc.values[k]) ? sc.values[k] : "-"; }).join(" | ");
       h += "<div class='item'><button type='button' class='tx" + (expanded["sc"+idx] ? " full" : "") + "' data-eact='expSc' data-idx='" + idx + "' aria-expanded='" + !!expanded["sc"+idx] + "'>";
       h += "<b>" + esc(sc.name) + "</b>" + (sc.x ? " 🔥" : "") +
         (sc.m ? " <span style='color:var(--acc);font-size:11px'>[M: " + esc(sc.m) + "]</span>" : "") +
-        "<div style='color:var(--dim);font-size:12px;margin-top:4px'>" + esc(prev) + "</div></div>";
+        "<span style='display:block;color:var(--dim);font-size:12px;margin-top:4px'>" + esc(prev) + "</span>";
       h += "</button><button type='button' class='btn sm' data-eact='applySc' data-idx='" + idx + "'>Apply</button>";
       h += "<button type='button' class='x' aria-label='Delete scene preset' data-eact='delSc' data-idx='" + idx + "'>Delete</button></div>";
     });
