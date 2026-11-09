@@ -63,8 +63,8 @@
     var result = PRRoll.applyScenePreset(preset, S.current, S.locked);
     if(!result.applied){ toast(result.reason); return false; }
     S.current = result.current;
-    E.SLOTS_SCENE.forEach(function(slot){ delete S.custom[slot]; });
-    if(result.outfitChanged) delete S.custom.outfit;
+    E.SLOTS_SCENE.forEach(function(slot){ if(!S.locked[slot]) delete S.custom[slot]; });
+    if(result.outfitChanged && !S.locked.outfit) delete S.custom.outfit;
     S.sceneOutfit = result.outfit;
     saveStore(); PRRender.renderAll(); toast("scene applied");
     return true;
