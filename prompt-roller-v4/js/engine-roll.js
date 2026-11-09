@@ -140,6 +140,26 @@
     "Pool edge": "a blue one-piece swimsuit",
     "Rooftop bar night": "a simple black evening dress with flat shoes"
   };
+  // Apply a complete preset atomically: a conflicting lock blocks the whole change.
+  function applyScenePreset(preset, current, locked){
+    if(!preset || !preset.values) return { applied: false, reason: "Choose a scene preset" };
+    var vals = preset.values, prev = current || {}, locks = locked || {};
+    for(var i = 0; i < CHAIN.length; i++){
+      var slot = CHAIN[i];
+      if(typeof vals[slot] !== "string" || !vals[slot].trim())
+        return { applied: false, reason: "Scene preset is incomplete: " + slot };
+      if(locks[slot] && prev[slot] !== vals[slot])
+        return { applied: false, reason: "Unlock " + slot + " to apply this preset" };
+    }
+    var outfit = vals.outfit || DEFAULT_OUTFITS[preset.name] || "";
+    if(outfit && locks.outfit && prev.outfit !== outfit)
+      return { applied: false, reason: "Unlock outfit to apply this preset" };
+    var next = Object.assign({}, prev);
+    CHAIN.forEach(function(slot){ next[slot] = vals[slot]; });
+    if(outfit) next.outfit = outfit;
+    return { applied: true, current: next, outfit: outfit || next.outfit || "",
+      outfitChanged: !!outfit };
+  }
   function rollScene(lists, mode, locked, current, mood, presets){
     var options = filterPool(presets || [], mode, mood).filter(function(p){
       return p && p.values && CHAIN.every(function(slot){
@@ -164,6 +184,7 @@
     guardMatches: guardMatches, pickGuarded: pickGuarded,
     pickDifferentOutfit: pickDifferentSlot, pickDifferentSlot: pickDifferentSlot,
     rollOneSlot: rollOneSlot, ctxFromCurrent: ctxFromCurrent, rollScene: rollScene,
+    applyScenePreset: applyScenePreset,
     DEFAULT_OUTFITS: DEFAULT_OUTFITS
   };
   window.__EOF = window.__EOF || {};

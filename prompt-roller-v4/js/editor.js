@@ -140,13 +140,7 @@
       } else if(act === "expSc"){ expanded["sc" + idx] = !expanded["sc" + idx]; render(); }
       else if(act === "applySc"){
         var p = s.presets[idx];
-        if(p && p.values){
-          E.SLOTS_SCENE.forEach(function(k){ if(p.values[k]) s.current[k] = p.values[k]; });
-          var outfit = p.values.outfit || PRRoll.DEFAULT_OUTFITS[p.name] || "";
-          s.sceneOutfit = outfit || s.current.outfit || "";
-          if(outfit && !s.locked.outfit) s.current.outfit = outfit;
-          window.PRUI.saveStore(); window.PRUI.renderAll(); window.PRUI.toast("scene applied");
-        }
+        if(p) window.PRUI.applyPreset(p);
       } else if(act === "delSc"){ s.presets.splice(idx, 1); window.PRUI.saveStore(); window.PRUI.renderAll(); render(); window.PRUI.toast("preset deleted"); }
     });
   }

@@ -59,6 +59,17 @@
     }
   }
 
+  function applyPreset(preset){
+    var result = PRRoll.applyScenePreset(preset, S.current, S.locked);
+    if(!result.applied){ toast(result.reason); return false; }
+    S.current = result.current;
+    E.SLOTS_SCENE.forEach(function(slot){ if(!S.locked[slot]) delete S.custom[slot]; });
+    if(result.outfitChanged && !S.locked.outfit) delete S.custom.outfit;
+    S.sceneOutfit = result.outfit;
+    saveStore(); PRRender.renderAll(); toast("scene applied");
+    return true;
+  }
+
   function rollGroup(slots){
     var hasChain = !!(window.PRRoll && PRRoll.rollScene);
     var roll = null;
@@ -94,7 +105,7 @@
     renderAll: function(){ PRRender.renderAll(); },
     renderPrompt: function(){ PRRender.renderPrompt(); },
     onOutEdit: function(){ PRRender.onOutEdit(); },
-    rollGroup: rollGroup, toast: toast, copy: copy,
+    rollGroup: rollGroup, applyPreset: applyPreset, toast: toast, copy: copy,
     bindEvents: function(){
       document.addEventListener("click", function(e){
         var actEl = e.target.closest("[data-act]");
