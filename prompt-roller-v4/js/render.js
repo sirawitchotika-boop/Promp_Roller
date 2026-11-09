@@ -56,6 +56,7 @@
   function onOutEdit(){
     var S = window.PRUI.getState();
     var out = document.getElementById("out"), full = out ? out.value : "";
+    if(out && window.PRDraft) PRDraft.track(full, E.buildPrompt(S.current));
     var warns = E.validate(S.current, full), wBox = document.getElementById("warns");
     if(wBox){
       wBox.innerHTML = warns.length ? warns.join("<br>") : "";

@@ -35,7 +35,7 @@
   }
 
   function initApp(){
-    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine-roll", "engine", "import", "backup", "test", "test-preset", "test-filter", "test-backup", "test-integration", "ui", "render", "ask", "editor", "editor-io", "hooktail", "slot-editor", "navigation", "app"];
+    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine-roll", "engine", "import", "backup", "test", "test-preset", "test-filter", "test-backup", "test-integration", "ui", "render", "ask", "editor", "editor-io", "hooktail", "slot-editor", "navigation", "draft", "app"];
     var missing = required.filter(function(f){ return !window.__EOF || !window.__EOF[f]; });
     var badge = document.getElementById("fileBadge");
 
@@ -44,6 +44,7 @@
       badge.style.color = "var(--ok)";
       PRUI.init();
       if(window.PRHookTail){ window.PRHookTail.seed(); PRUI.renderAll(); }
+      if(window.PRDraft) window.PRDraft.recover();
       if(window.PREdit) window.PREdit.init();
       if(window.PRSlotEditor) window.PRSlotEditor.init();
       bindControls();
