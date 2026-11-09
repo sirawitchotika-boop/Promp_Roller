@@ -1,6 +1,6 @@
 // js/engine-roll.js - Roll Modes + Mood Tags + Guard Tags + Scene Roll Chain (v4.3)
 (function(){
-  var CHAIN = ["venue", "action", "hands", "prop", "light", "depth", "camera"];
+  var CHAIN = ["venue", "action", "light", "camera"];
   var MOODS = ["devoted", "femdom", "tease", "shy", "cold", "jealous"];
 
   // Roll-mode + mood pool filter (single source of truth for every roll path).
@@ -113,28 +113,39 @@
     var rest = untagged.length ? untagged : eligible;
     return rest[Math.floor(Math.random() * rest.length)];
   }
-  // Locked scene slots stay fixed and donate their guards to the context.
-  function rollScene(lists, mode, locked, current, mood){
+  // Roll one complete preset, never unrelated scene fragments.
+  // Older presets without an outfit retain the existing outfit.
+  var DEFAULT_OUTFITS = {
+    "Rooftop laundry (SFW)": "a loose white t-shirt knotted at her waist, denim shorts, bare feet",
+    "Midnight kitchen (SFW)": "a thin white tank top and grey sweatpants rolled at the waist",
+    "Rain bus stop (SFW)": "a thin beige trench coat over a black turtleneck, wet from rain",
+    "Gym chalk (SFW)": "a black sports bra and short shorts, white chalk dust on her hands",
+    "Pool edge": "a blue one-piece swimsuit",
+    "Rooftop bar night": "a simple black evening dress with flat shoes"
+  };
+  function rollScene(lists, mode, locked, current, mood, presets){
+    var options = filterPool(presets || [], mode, mood).filter(function(p){
+      return p && p.values && CHAIN.every(function(slot){
+        return typeof p.values[slot] === "string" && !!p.values[slot].trim() &&
+          (!locked || !locked[slot] || p.values[slot] === ((current && current[slot]) || ""));
+      });
+    });
+    var picked = options.length ? options[Math.floor(Math.random() * options.length)] : null;
     var ctx = {}, vals = {};
     CHAIN.forEach(function(slot){
-      if(locked && locked[slot]){
-        vals[slot] = (current && current[slot]) || "";
-        mergeGuards(ctx, itemGuards((lists || {})[slot], vals[slot]));
-      }
+      vals[slot] = (locked && locked[slot]) || !picked ?
+        ((current && current[slot]) || "") : picked.values[slot];
+      mergeGuards(ctx, itemGuards((lists || {})[slot], vals[slot]));
     });
-    CHAIN.forEach(function(slot){
-      if(locked && locked[slot]) return;
-      var pick = pickGuarded((lists || {})[slot], mode, ctx, mood);
-      vals[slot] = pick ? pick.t : "";
-      if(pick) mergeGuards(ctx, pick.g);
-    });
-    return { vals: vals, ctx: ctx };
+    return { vals: vals, ctx: ctx, matched: !!picked,
+      outfit: picked ? (picked.values.outfit || DEFAULT_OUTFITS[picked.name] || "") : "" };
   }
 
   window.PRRoll = {
     CHAIN: CHAIN, MOODS: MOODS, filterPool: filterPool, parseGuard: parseGuard, stripBadGuard: stripBadGuard,
     parseMood: parseMood, stripBadMood: stripBadMood, parseTags: parseTags, guardText: guardText,
-    guardMatches: guardMatches, pickGuarded: pickGuarded, ctxFromCurrent: ctxFromCurrent, rollScene: rollScene
+    guardMatches: guardMatches, pickGuarded: pickGuarded, ctxFromCurrent: ctxFromCurrent, rollScene: rollScene,
+    DEFAULT_OUTFITS: DEFAULT_OUTFITS
   };
   window.__EOF = window.__EOF || {};
   window.__EOF["engine-roll"] = true;
