@@ -123,7 +123,7 @@
     if(hasChain && slots.indexOf("venue") >= 0){
       var candidates = S.presets.filter(function(p){
         var text = p && p.values && (p.values.outfit || PRRoll.DEFAULT_OUTFITS[p.name] || "");
-        return !text || canUseOutfit(text, p.values, S.lists, S.presets, S.mode, S.mood);
+        return !text || canUseOutfit(text, p.values, S.lists, [p], S.mode, S.mood);
       });
       roll = PRRoll.rollScene(S.lists, S.mode, S.locked, S.current, S.mood, candidates);
       if(!roll.matched){ toast("No scene preset matches mode, mood and locks"); return; }
