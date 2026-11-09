@@ -1,7 +1,11 @@
 // js/app.js - App Controller, Tabs & Watchdog Verification (v4.3 roll modes + mood filter)
 (function(){
+  var currentView = "roll", viewScroll = { roll: 0, edit: 0 };
   function showTab(t){
     if(t !== "roll" && t !== "edit") return;
+    var switched = t !== currentView;
+    if(switched && typeof window.scrollY === "number")
+      viewScroll[currentView] = window.scrollY;
     ["roll", "edit"].forEach(function(k){
       var selected = k === t, v = document.getElementById("view-" + k);
       if(v){ v.hidden = !selected; v.style.display = selected ? "block" : "none"; }
@@ -13,6 +17,8 @@
       }
     });
     if(t === "edit" && window.PREdit) window.PREdit.render();
+    currentView = t;
+    if(switched && window.scrollTo) window.scrollTo(0, viewScroll[t] || 0);
   }
   window.showTab = showTab;
 
@@ -29,7 +35,7 @@
   }
 
   function initApp(){
-    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine-roll", "engine", "import", "backup", "test", "test-preset", "test-filter", "test-backup", "test-integration", "ui", "render", "ask", "editor", "editor-io", "hooktail", "slot-editor", "app"];
+    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine-roll", "engine", "import", "backup", "test", "test-preset", "test-filter", "test-backup", "test-integration", "ui", "render", "ask", "editor", "editor-io", "hooktail", "slot-editor", "navigation", "app"];
     var missing = required.filter(function(f){ return !window.__EOF || !window.__EOF[f]; });
     var badge = document.getElementById("fileBadge");
 
@@ -41,6 +47,7 @@
       if(window.PREdit) window.PREdit.init();
       if(window.PRSlotEditor) window.PRSlotEditor.init();
       bindControls();
+      if(window.PRNavigation) window.PRNavigation.init();
     } else {
       var err = window.__bootErr || ("Missing or cut file(s): " + missing.join(", "));
       badge.textContent = "⚠ error loading";

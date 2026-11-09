@@ -118,6 +118,15 @@
     </div>
   </dialog>
 
+  <dialog class="exit-dialog" id="exitDialog" aria-labelledby="exitTitle">
+    <h2 id="exitTitle">Leave Prompt Roller?</h2>
+    <p>Your saved lists and presets will stay on this device.</p>
+    <div class="row exit-actions">
+      <button type="button" class="btn sm" id="exitStay">Stay here</button>
+      <button type="button" class="btn sm danger" id="exitLeave">Leave</button>
+    </div>
+  </dialog>
+
   <div class="toast" id="toast" role="status" aria-live="polite">copied</div>
 
   <script src="js/data-rules.js"></script>
@@ -140,6 +149,7 @@
   <script src="js/editor-io.js"></script>
   <script src="js/hooktail.js"></script>
   <script src="js/slot-editor.js"></script>
+  <script src="js/navigation.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

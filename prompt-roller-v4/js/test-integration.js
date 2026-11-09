@@ -133,6 +133,9 @@
       PREngine.ALL_SLOTS.every(function(k){ return PRSlotEditor.canOpen(k); }));
     T("UI-4A: unknown and archived slots are not editable",
       !PRSlotEditor.canOpen("missing") && !PRSlotEditor.canOpen("hands"));
+    T("UI-4B: only the app's own history entry counts as a guard",
+      PRNavigation.isGuard({ prRollerGuard: true }) &&
+      !PRNavigation.isGuard({}) && !PRNavigation.isGuard(null));
     return results;
   };
   window.__EOF = window.__EOF || {};

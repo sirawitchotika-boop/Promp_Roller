@@ -1,6 +1,6 @@
 // js/slot-editor.js - in-app editor for one active slot.
 (function(){
-  var onSave = null, previousFocus = null;
+  var onSave = null, previousFocus = null, previousScroll = null;
   function el(id){ return document.getElementById(id); }
   function canOpen(slot){
     return !!window.PREngine && PREngine.ALL_SLOTS.indexOf(slot) >= 0;
@@ -16,11 +16,19 @@
     if(previousFocus && previousFocus.isConnected && previousFocus.focus)
       previousFocus.focus({ preventScroll: true });
     previousFocus = null;
+    if(previousScroll !== null && window.scrollTo){
+      var top = previousScroll;
+      window.scrollTo(0, top);
+      // Android may resize the viewport again when its keyboard closes.
+      if(window.setTimeout) window.setTimeout(function(){ window.scrollTo(0, top); }, 180);
+    }
+    previousScroll = null;
   }
   function open(slot, value, save){
     var d = el("slotEditDialog"), input = el("slotEditInput");
     if(!d || !input || !d.showModal || !canOpen(slot) || isOpen()) return false;
     previousFocus = document.activeElement;
+    previousScroll = typeof window.scrollY === "number" ? window.scrollY : null;
     var name = (window.PRAsk && PRAsk.SLOT_NAMES[slot]) || slot;
     el("slotEditTitle").textContent = "Edit " + name;
     input.value = String(value || "");
