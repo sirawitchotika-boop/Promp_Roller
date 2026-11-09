@@ -102,6 +102,18 @@
         var act = actEl.dataset.act, row = actEl.closest(".slot"), slot = row ? row.dataset.slot : null;
         if(act === "lock" && slot){ S.locked[slot] = !S.locked[slot]; saveStore(); PRRender.renderAll(); }
         else if(act === "roll" && slot){
+          if(slot === "outfit"){
+            if(S.locked.outfit){ toast("Unlock Outfit to roll"); return; }
+            var outfitCtx = PRRoll.ctxFromCurrent(S.lists, S.current);
+            var outfitPick = PRRoll.pickDifferentOutfit(
+              S.lists.outfit, S.mode, outfitCtx, S.mood, S.current.outfit);
+            if(!outfitPick){ toast("No other matching outfit in your list"); return; }
+            S.current.outfit = outfitPick.t;
+            S.sceneOutfit = outfitPick.t; // Keep Subject rolls from undoing this selection.
+            delete S.custom.outfit;
+            saveStore(); PRRender.renderAll();
+            return;
+          }
           var guardAware = window.PRRoll && PRRoll.pickGuarded &&
             (E.SLOTS_SCENE.indexOf(slot) >= 0 || slot === "outfit");
           if(E.SLOTS_SCENE.indexOf(slot) >= 0 && window.PRRoll){
@@ -133,6 +145,7 @@
             var minor = E.checkMinors(val);
             if(minor){ alert("BLOCKED: Minors word '" + minor + "' is strictly prohibited."); return; }
             S.current[slot] = val.trim();
+            if(slot === "outfit") S.sceneOutfit = S.current.outfit; // Keep manual clothing on Subject rolls.
             if(val.trim()) S.custom[slot] = true; else delete S.custom[slot];
             saveStore(); PRRender.renderAll();
           }

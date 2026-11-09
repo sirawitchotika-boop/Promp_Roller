@@ -113,6 +113,14 @@
     var rest = untagged.length ? untagged : eligible;
     return rest[Math.floor(Math.random() * rest.length)];
   }
+  // Roll a DIFFERENT outfit from the mode/mood pool, respecting known guards.
+  // Return null when no suitable alternative exists; never silently reselect the same text.
+  function pickDifferentOutfit(pool, mode, ctx, mood, current){
+    var choices = filterPool(pool, mode, mood).filter(function(it){
+      return it && it.t && it.t !== current && guardMatches(it.g, ctx);
+    });
+    return choices.length ? choices[Math.floor(Math.random() * choices.length)] : null;
+  }
   // Roll one complete preset, never unrelated scene fragments.
   // Older presets without an outfit retain the existing outfit.
   var DEFAULT_OUTFITS = {
@@ -144,7 +152,8 @@
   window.PRRoll = {
     CHAIN: CHAIN, MOODS: MOODS, filterPool: filterPool, parseGuard: parseGuard, stripBadGuard: stripBadGuard,
     parseMood: parseMood, stripBadMood: stripBadMood, parseTags: parseTags, guardText: guardText,
-    guardMatches: guardMatches, pickGuarded: pickGuarded, ctxFromCurrent: ctxFromCurrent, rollScene: rollScene,
+    guardMatches: guardMatches, pickGuarded: pickGuarded, pickDifferentOutfit: pickDifferentOutfit,
+    ctxFromCurrent: ctxFromCurrent, rollScene: rollScene,
     DEFAULT_OUTFITS: DEFAULT_OUTFITS
   };
   window.__EOF = window.__EOF || {};

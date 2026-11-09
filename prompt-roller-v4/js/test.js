@@ -160,6 +160,24 @@
     }
     T("scene: repeated rolls preserve seed preset coherence", seedOK);
 
+    // Phase 1: Outfit dice should change clothing without needing a new scene.
+    var outfits = [
+      { t: "red dress", g: { in: "indoor" } },
+      { t: "blue jacket", g: { in: "indoor" } },
+      { t: "pool swimsuit", g: { in: "outdoor" } }
+    ];
+    var alt = PRRoll.pickDifferentOutfit(outfits, "sfw", { in: "indoor" }, "any", "red dress");
+    T("outfit dice: picks a different matching outfit", !!alt && alt.t === "blue jacket");
+    T("outfit dice: no alternative keeps the current outfit",
+      PRRoll.pickDifferentOutfit([outfits[0]], "sfw", { in: "indoor" }, "any", "red dress") === null);
+    T("outfit dice: incompatible guards are excluded",
+      PRRoll.pickDifferentOutfit([outfits[2]], "sfw", { in: "indoor" }, "any", "red dress") === null);
+    T("outfit dice: mode and mood filters still apply",
+      PRRoll.pickDifferentOutfit([
+        { t: "clean shirt", m: "tease" }, { t: "dark jacket", m: "cold" },
+        { t: "spicy dress", x: 1, m: "tease" }
+      ], "sfw", {}, "tease", "old outfit").t === "clean shirt");
+
     return results;
   }
 
