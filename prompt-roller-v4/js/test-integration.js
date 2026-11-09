@@ -117,6 +117,18 @@
     T("UI-2: legacy and incomplete preset entries do not crash scene status",
       PRRender.sceneName([null, {}, { name: "Old", values: { venue: "garden" } }],
         namedScene.values) === "");
+    var sampleReport = PRAsk.renderTestPanel([
+      { pass: true, name: "healthy case" }, { pass: false, name: "broken case", note: "check action" }
+    ]);
+    T("UI-3: self-test shows compact pass and fail totals",
+      sampleReport.indexOf("1 / 2 passed") >= 0 && sampleReport.indexOf("1 failed") >= 0);
+    T("UI-3: failures are visible before optional full details",
+      sampleReport.indexOf("broken case") < sampleReport.indexOf("<details"));
+    T("UI-3: full self-test report stays collapsed by default",
+      sampleReport.indexOf("<details class='test-details'>") >= 0 &&
+      sampleReport.indexOf("<details open") < 0);
+    T("UI-3: test result labels are escaped before HTML display",
+      PRAsk.renderTestPanel([{ pass: false, name: "<bad>" }]).indexOf("&lt;bad&gt;") >= 0);
     return results;
   };
   window.__EOF = window.__EOF || {};

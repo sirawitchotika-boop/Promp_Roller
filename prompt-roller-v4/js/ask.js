@@ -2,6 +2,7 @@
 (function(){
   var E = window.PREngine;
   var R = window.PR_RULES;
+  function esc(s){ return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
   var SLOT_NAMES = {
     body: "Body tier", hairC: "Hair color", hairS: "Hairstyle", eyes: "Eye color",
     skin: "Skin", face: "Face / mood", outfit: "Outfit", camera: "Camera",
@@ -107,14 +108,24 @@
     var h = "<div class='hint'>Fixture suite — one tap, no typing. Runs on throwaway data, never touches your real lists.</div>";
     h += "<div class='row' style='align-items:center;margin:8px 0'><button class='btn sm' data-eact='runtests' style='background:var(--acc)'>▶ Run all tests</button></div>";
     if(!results) return h + "<div id='testOut' class='hint'>Tap ▶ Run all tests above to execute the suite.</div>";
-    var list = results;
-    var pass = list.filter(function(r){ return r.pass; }).length;
-    var timeStr = new Date().toTimeString().slice(0, 8);
-    h += "<div class='hint' style='color:" + (pass === list.length ? "var(--ok)" : "var(--bad)") + "'><b>✓ " + pass + " / " + list.length + " passed</b> (ran at " + timeStr + ")</div>";
-    list.forEach(function(r){
-      h += "<div class='item' style='padding:6px 10px;margin-bottom:6px'><div class='tx'><span class='dot " + (r.pass ? "v" : "bad") + "'></span><b>" + r.name + "</b></div></div>";
-    });
-    return h;
+    var failed = results.filter(function(r){ return !r.pass; });
+    var pass = results.length - failed.length;
+    h += "<p class='test-summary" + (failed.length ? " has-failures" : "") +
+      "' role='status'><strong>" + pass + " / " + results.length +
+      " passed</strong> · " + failed.length + " failed</p>";
+    function row(r){
+      return "<div class='test-result'><span class='dot " +
+        (r.pass ? "v" : "bad") + "'></span>" + esc(r.name) +
+        (r.note ? " — " + esc(r.note) : "") + "</div>";
+    }
+    if(failed.length){
+      h += "<div class='test-failures'><strong>Needs attention</strong>";
+      failed.forEach(function(r){ h += row(r); });
+      h += "</div>";
+    }
+    h += "<details class='test-details'><summary>Show all " + results.length + " checks</summary>";
+    results.forEach(function(r){ h += row(r); });
+    return h + "</details>";
   }
 
   function renderInventoryPanel(){
