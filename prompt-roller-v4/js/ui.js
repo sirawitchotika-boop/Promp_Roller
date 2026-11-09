@@ -85,7 +85,6 @@
       if(!roll.matched){ toast("No scene preset matches mode, mood and locks"); return; }
       S.sceneOutfit = roll.outfit || S.current.outfit || "";
     }
-    var ctx = roll ? roll.ctx : (hasChain ? PRRoll.ctxFromCurrent(S.lists, S.current) : null);
     slots.forEach(function(s){
       if(S.locked[s]) return;
       if(E.SLOTS_SCENE.indexOf(s) >= 0){
