@@ -2,6 +2,14 @@
 (function(){
   var E = window.PREngine, A = window.PRAsk, SLOT_NAMES = A.SLOT_NAMES;
   var editQ = {}, expanded = {}, testResults = null;
+  var activePanel = "vocabulary", toolPanel = "__overview";
+  function panelFor(target){
+    if(E.ALL_SLOTS.indexOf(target) >= 0) return "vocabulary";
+    if(target === "__scenes") return "scenes";
+    if(target === "__exchange") return "exchange";
+    if(["__overview","__backup","__hooktail","__test"].indexOf(target) >= 0) return "tools";
+    return ["vocabulary","scenes","exchange","tools"].indexOf(target) >= 0 ? target : null;
+  }
   function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
   function confirmDelete(label){
     return confirm("Delete " + String(label || "").slice(0, 72) + "? This cannot be undone.");
@@ -13,12 +21,6 @@
     var h = E.ALL_SLOTS.map(function(slot){
       return "<option value='" + slot + "'>" + (SLOT_NAMES[slot]||slot) + " (" + (s.lists[slot]||[]).length + ")</option>";
     }).join("");
-    h += "<option value='__exchange'>Exchange (export / Ask AI / import)</option>";
-    h += "<option value='__scenes'>Scene presets (" + (s.presets||[]).length + ")</option>";
-    h += "<option value='__overview'>Inventory overview (11 active)</option>";
-    h += "<option value='__backup'>Backup / restore</option>";
-    h += "<option value='__hooktail'>Hook &amp; tail</option>";
-    h += "<option value='__test'>Self-test (dev)</option>";
     sel.innerHTML = h;
     if(curVal && sel.querySelector("option[value='" + curVal + "']")) sel.value = curVal;
   }
@@ -78,11 +80,32 @@
     if(val === "__exchange") PREditIO.wireExchange(s, applyImportResult);
     else if(val === "__backup") PREditIO.wireBackup(s, render);
   }
+  function navigate(target){
+    var panel = panelFor(target), sel = document.getElementById("editSel");
+    if(!panel) return;
+    activePanel = panel;
+    if(panel === "tools" && target !== "tools") toolPanel = target;
+    if(panel === "vocabulary" && E.ALL_SLOTS.indexOf(target) >= 0){
+      fillDropdown();
+      if(sel) sel.value = target;
+    }
+    render();
+  }
   function render(){
     fillDropdown();
     var sel = document.getElementById("editSel"), box = document.getElementById("editorBox");
     if(!sel || !box) return;
-    var val = sel.value || "body";
+    var slots = document.getElementById("editSlotWrap"), tools = document.getElementById("editTools");
+    if(slots) slots.hidden = activePanel !== "vocabulary";
+    if(tools) tools.hidden = activePanel !== "tools";
+    document.querySelectorAll("[data-edit-panel]").forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.editPanel === activePanel));
+    });
+    document.querySelectorAll("[data-edit-tool]").forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.editTool === toolPanel));
+    });
+    var val = activePanel === "vocabulary" ? (sel.value || "body") :
+      activePanel === "tools" ? toolPanel : "__" + activePanel;
     if(val === "__overview"){ box.innerHTML = A.renderInventoryPanel(); return; }
     if(val === "__exchange"){ box.innerHTML = A.renderExchangePanel(); wireSubPanels(val); return; }
     if(val === "__backup"){ box.innerHTML = A.renderBackupPanel(); wireSubPanels(val); return; }
@@ -106,11 +129,16 @@
     }
   }
   function bindEditorClicks(){
+    var view = document.getElementById("view-edit");
+    if(view) view.addEventListener("click", function(e){
+      var nav = e.target.closest("[data-edit-panel], [data-edit-tool]");
+      if(nav) navigate(nav.dataset.editPanel || nav.dataset.editTool);
+    });
     var box = document.getElementById("editorBox");
     if(!box) return;
     box.addEventListener("click", function(e){
       var jump = e.target.closest("[data-jump]");
-      if(jump){ document.getElementById("editSel").value = jump.dataset.jump; render(); return; }
+      if(jump){ navigate(jump.dataset.jump); return; }
       var b = e.target.closest("[data-eact]");
       if(!b) return;
       var act = b.dataset.eact, slot = b.dataset.slot, idx = parseInt(b.dataset.idx, 10), s = window.PRUI.getState();
@@ -158,7 +186,8 @@
     });
   }
   window.PREdit = { init: function(){ fillDropdown(); render(); bindEditorClicks(); },
-    render: render, fillDropdown: fillDropdown, confirmDelete: confirmDelete };
+    render: render, fillDropdown: fillDropdown, confirmDelete: confirmDelete,
+    navigate: navigate, panelFor: panelFor };
   window.__EOF = window.__EOF || {};
   window.__EOF["editor"] = true;
 })();

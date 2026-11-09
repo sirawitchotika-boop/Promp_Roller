@@ -95,6 +95,17 @@
       PRUI.getState = get; PRUI.saveStore = save;
       PR_RULES.HOOK = hook; PR_RULES.TAIL = tail;
     }
+    T("UI-1: all active vocabulary slots have a navigation route",
+      PREngine.ALL_SLOTS.every(function(slot){ return PREdit.panelFor(slot) === "vocabulary"; }));
+    T("UI-1: Scenes and Exchange keep distinct routes",
+      PREdit.panelFor("__scenes") === "scenes" &&
+      PREdit.panelFor("__exchange") === "exchange");
+    T("UI-1: inventory, Hook/Tail, backup and self-test remain accessible",
+      ["__overview","__hooktail","__backup","__test"].every(function(v){
+        return PREdit.panelFor(v) === "tools";
+      }));
+    T("UI-1: unexpected navigation targets cannot change panels",
+      PREdit.panelFor("unknown") === null);
     return results;
   };
   window.__EOF = window.__EOF || {};
