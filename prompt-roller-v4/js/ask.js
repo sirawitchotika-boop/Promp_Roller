@@ -103,11 +103,11 @@
     return h;
   }
 
-  function renderTestPanel(ran){
+  function renderTestPanel(results){
     var h = "<div class='hint'>Fixture suite — one tap, no typing. Runs on throwaway data, never touches your real lists.</div>";
     h += "<div class='row' style='align-items:center;margin:8px 0'><button class='btn sm' data-eact='runtests' style='background:var(--acc)'>▶ Run all tests</button></div>";
-    if(!ran) return h + "<div id='testOut' class='hint'>Tap ▶ Run all tests above to execute the suite.</div>";
-    var list = window.PRTest ? window.PRTest.run() : [];
+    if(!results) return h + "<div id='testOut' class='hint'>Tap ▶ Run all tests above to execute the suite.</div>";
+    var list = results;
     var pass = list.filter(function(r){ return r.pass; }).length;
     var timeStr = new Date().toTimeString().slice(0, 8);
     h += "<div class='hint' style='color:" + (pass === list.length ? "var(--ok)" : "var(--bad)") + "'><b>✓ " + pass + " / " + list.length + " passed</b> (ran at " + timeStr + ")</div>";
