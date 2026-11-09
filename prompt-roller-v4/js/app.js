@@ -12,7 +12,7 @@
   window.showTab = showTab;
 
   function initApp(){
-    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine-roll", "engine", "import", "test", "test-preset", "ui", "render", "ask", "editor", "editor-io", "hooktail", "app"];
+    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine-roll", "engine", "import", "test", "test-preset", "test-filter", "ui", "render", "ask", "editor", "editor-io", "hooktail", "app"];
     var missing = required.filter(function(f){ return !window.__EOF || !window.__EOF[f]; });
     var badge = document.getElementById("fileBadge");
 
