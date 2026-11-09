@@ -72,10 +72,17 @@
 
   function rollGroup(slots){
     var hasChain = !!(window.PRRoll && PRRoll.rollScene);
+    // Precheck so an empty filtered pool cannot erase a slot mid-roll.
+    var missing = slots.filter(function(slot){
+      if(S.locked[slot] || E.SLOTS_SCENE.indexOf(slot) >= 0) return false;
+      if(slot === "outfit" && hasChain && (S.sceneOutfit || slots.indexOf("venue") >= 0)) return false;
+      return !PRRoll.filterPool(S.lists[slot], S.mode, S.mood).length;
+    });
+    if(missing.length){ toast("No " + missing[0] + " choices match this mode/mood"); return; }
     var roll = null;
     if(hasChain && slots.indexOf("venue") >= 0){
       roll = PRRoll.rollScene(S.lists, S.mode, S.locked, S.current, S.mood, S.presets);
-      if(!roll.matched){ toast("No matching scene preset - unlock a scene slot"); return; }
+      if(!roll.matched){ toast("No scene preset matches mode, mood and locks"); return; }
       S.sceneOutfit = roll.outfit || S.current.outfit || "";
     }
     var ctx = roll ? roll.ctx : (hasChain ? PRRoll.ctxFromCurrent(S.lists, S.current) : null);
