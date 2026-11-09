@@ -96,10 +96,11 @@
     return null;
   }
   // Context read from what is currently on the board (for single-slot rerolls).
-  function ctxFromCurrent(lists, current){
+  function ctxFromCurrent(lists, current, excludedSlot){
     var ctx = {};
     CHAIN.forEach(function(slot){
-      mergeGuards(ctx, itemGuards((lists || {})[slot], (current || {})[slot]));
+      if(slot !== excludedSlot)
+        mergeGuards(ctx, itemGuards((lists || {})[slot], (current || {})[slot]));
     });
     return ctx;
   }
@@ -113,13 +114,21 @@
     var rest = untagged.length ? untagged : eligible;
     return rest[Math.floor(Math.random() * rest.length)];
   }
-  // Roll a DIFFERENT outfit from the mode/mood pool, respecting known guards.
-  // Return null when no suitable alternative exists; never silently reselect the same text.
-  function pickDifferentOutfit(pool, mode, ctx, mood, current){
+  // Pick a new value for ONE slot. Never select the existing text again.
+  function pickDifferentSlot(pool, mode, ctx, mood, current){
     var choices = filterPool(pool, mode, mood).filter(function(it){
       return it && it.t && it.t !== current && guardMatches(it.g, ctx);
     });
     return choices.length ? choices[Math.floor(Math.random() * choices.length)] : null;
+  }
+  // Returns a new board; the original board and every other slot are unchanged.
+  function rollOneSlot(slot, current, lists, mode, mood){
+    var pick = pickDifferentSlot((lists || {})[slot], mode,
+      ctxFromCurrent(lists, current, slot), mood, (current || {})[slot]);
+    if(!pick) return null;
+    var next = Object.assign({}, current || {});
+    next[slot] = pick.t;
+    return next;
   }
   // Roll one complete preset, never unrelated scene fragments.
   // Older presets without an outfit retain the existing outfit.
@@ -152,8 +161,9 @@
   window.PRRoll = {
     CHAIN: CHAIN, MOODS: MOODS, filterPool: filterPool, parseGuard: parseGuard, stripBadGuard: stripBadGuard,
     parseMood: parseMood, stripBadMood: stripBadMood, parseTags: parseTags, guardText: guardText,
-    guardMatches: guardMatches, pickGuarded: pickGuarded, pickDifferentOutfit: pickDifferentOutfit,
-    ctxFromCurrent: ctxFromCurrent, rollScene: rollScene,
+    guardMatches: guardMatches, pickGuarded: pickGuarded,
+    pickDifferentOutfit: pickDifferentSlot, pickDifferentSlot: pickDifferentSlot,
+    rollOneSlot: rollOneSlot, ctxFromCurrent: ctxFromCurrent, rollScene: rollScene,
     DEFAULT_OUTFITS: DEFAULT_OUTFITS
   };
   window.__EOF = window.__EOF || {};
