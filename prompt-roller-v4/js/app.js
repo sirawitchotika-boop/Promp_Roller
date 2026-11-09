@@ -1,11 +1,16 @@
 // js/app.js - App Controller, Tabs & Watchdog Verification (v4.3 roll modes + mood filter)
 (function(){
   function showTab(t){
+    if(t !== "roll" && t !== "edit") return;
     ["roll", "edit"].forEach(function(k){
-      var v = document.getElementById("view-" + k);
-      if(v) v.style.display = (k === t) ? "block" : "none";
+      var selected = k === t, v = document.getElementById("view-" + k);
+      if(v){ v.hidden = !selected; v.style.display = selected ? "block" : "none"; }
       var tab = document.getElementById("tab-" + k);
-      if(tab) tab.classList.toggle("on", k === t);
+      if(tab){
+        tab.classList.toggle("on", selected);
+        tab.setAttribute("aria-selected", String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+      }
     });
     if(t === "edit" && window.PREdit) window.PREdit.render();
   }
@@ -47,6 +52,18 @@
   }
 
   function bindControls(){
+    var tabs = document.querySelector(".tabs");
+    if(tabs) tabs.addEventListener("keydown", function(e){
+      var keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
+      if(keys.indexOf(e.key) < 0 || !e.target || !e.target.id) return;
+      var order = ["roll", "edit"], i = order.indexOf(e.target.id.replace(/^tab-/, ""));
+      if(i < 0) return;
+      e.preventDefault();
+      var next = e.key === "Home" ? 0 : e.key === "End" ? 1 :
+        (i + (e.key === "ArrowRight" ? 1 : -1) + order.length) % order.length;
+      showTab(order[next]);
+      document.getElementById("tab-" + order[next]).focus();
+    });
     // Null-safe binder: a renamed or missing ID can no longer crash boot.
     function on(id, fn){ var el = document.getElementById(id); if(el) el.onclick = fn; }
     var seg = document.getElementById("modeSeg");

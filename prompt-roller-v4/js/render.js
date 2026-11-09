@@ -138,7 +138,11 @@
     renderPrompt(forcePrompt);
     var S = window.PRUI.getState();
     var seg = document.getElementById("modeSeg");
-    if(seg) seg.querySelectorAll(".mbtn").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-mode") === S.mode); });
+    if(seg) seg.querySelectorAll(".mbtn").forEach(function(b){
+      var active = b.getAttribute("data-mode") === S.mode;
+      b.classList.toggle("on", active);
+      b.setAttribute("aria-pressed", String(active));
+    });
   }
 
   window.PRRender = { renderAll: renderAll, renderPrompt: renderPrompt,

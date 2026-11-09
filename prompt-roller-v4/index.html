@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#14161c">
   <title>Prompt Roller v4.3</title>
   <link rel="stylesheet" href="style.css">
@@ -16,24 +16,26 @@
 <body>
   <header>
     <h1>🎲 Prompt Roller</h1>
-    <div class="mode" id="modeSeg">
+    <div class="mode" id="modeSeg" role="group" aria-label="Content filter">
       <button class="mbtn" type="button" data-mode="sfw">SFW</button>
       <button class="mbtn" type="button" data-mode="mix">Mix</button>
       <button class="mbtn" type="button" data-mode="nsfw">NSFW</button>
     </div>
     <div class="moodrow">
-      <span class="mlbl">Mood</span>
+      <label class="mlbl" for="moodSel">Mood</label>
       <select id="moodSel"></select>
     </div>
     <div class="sub">Prompt Roller · Coherent Scenes · <span id="fileBadge" style="color:var(--dim)">loading files...</span></div>
   </header>
 
-  <div class="tabs">
-    <div class="tab on" id="tab-roll" onclick="showTab('roll')">Roll</div>
-    <div class="tab" id="tab-edit" onclick="showTab('edit')">Edit</div>
+  <div class="tabs" role="tablist" aria-label="Main views">
+    <button type="button" role="tab" class="tab on" id="tab-roll"
+      aria-controls="view-roll" aria-selected="true" tabindex="0" onclick="showTab('roll')">Roll</button>
+    <button type="button" role="tab" class="tab" id="tab-edit"
+      aria-controls="view-edit" aria-selected="false" tabindex="-1" onclick="showTab('edit')">Edit</button>
   </div>
 
-  <main id="view-roll">
+  <main id="view-roll" role="tabpanel" aria-labelledby="tab-roll">
     <section class="roll-actions" aria-label="Generate prompt">
       <button class="big" id="btnRollAll">Roll all <span>+ copy prompt</span></button>
       <div class="row roll-modes">
@@ -45,10 +47,10 @@
 
     <label class="sect roll-section-label" for="out">Prompt output <span>Edit before copying</span></label>
     <div class="card prompt-card">
-      <textarea id="out" rows="7" spellcheck="false" oninput="PRUI.onOutEdit()"></textarea>
+      <textarea id="out" rows="7" aria-describedby="counter" spellcheck="false" oninput="PRUI.onOutEdit()"></textarea>
       <div class="counter" id="counter"></div>
       <div class="draft-status" id="draftStatus" aria-live="polite" hidden>Hand-edited draft. Rebuild or Roll will ask before replacing it.</div>
-      <div class="warns" id="warns" style="display:none"></div>
+      <div class="warns" id="warns" aria-live="polite" style="display:none"></div>
       <div class="row prompt-actions">
         <button class="btn sm" onclick="PRUI.copy(document.getElementById('out').value, 'copied')">Copy prompt</button>
         <button class="btn sm" onclick="PRUI.renderPrompt()">Rebuild from slots</button>
@@ -80,7 +82,7 @@
     <div id="slotsScene" class="slot-list"></div>
   </main>
 
-  <main id="view-edit" style="display:none">
+  <main id="view-edit" role="tabpanel" aria-labelledby="tab-edit" style="display:none" hidden>
     <nav class="edit-nav" aria-label="Edit sections">
       <button type="button" data-edit-panel="vocabulary" aria-pressed="true">Vocabulary</button>
       <button type="button" data-edit-panel="scenes" aria-pressed="false">Scenes</button>
@@ -102,7 +104,7 @@
     </div>
   </main>
 
-  <div class="toast" id="toast">copied</div>
+  <div class="toast" id="toast" role="status" aria-live="polite">copied</div>
 
   <script src="js/data-rules.js"></script>
   <script src="js/data-subject.js"></script>
