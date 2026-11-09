@@ -69,7 +69,7 @@
           var check = window.PRBackup.verify(parsed);
           if(!check.ok){ alert(check.error); return; }
           var partial = !parsed.current || !parsed.locked || !parsed.custom || !parsed.presets;
-          var warning = "Restore will REPLACE your current saved lists, presets, locks, and scene. Download a full backup first.";
+          var warning = "Restore will REPLACE saved data (lists, presets, locks, scene, Hook and Tail). Download a full backup first.";
           if(partial) warning += "\nThis file is partial; missing fields will be reset.";
           if(!confirm(warning + "\nContinue?")) return;
           var restore = window.PRBackup.restore(parsed, s);
