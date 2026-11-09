@@ -6,17 +6,16 @@
   // Roll-mode + mood pool filter (single source of truth for every roll path).
   // mode: "sfw" = clean only · "nsfw" = x-flagged only · "mix" = all (legacy true/false -> mix/sfw).
   // mood: falsy or "any" = no filter · else keep mood-tagged + untagged items.
-  // Empty mood result falls back to the mode-filtered pool - never a dead roll.
+  // An empty SFW or mood pool stays empty: do not silently bypass a filter.
   function filterPool(pool, mode, mood){
     if(!pool || !pool.length) return [];
     if(mode === true) mode = "mix"; else if(mode === false) mode = "sfw";
     var el;
-    if(mode === "nsfw"){ el = pool.filter(function(it){ return it.x; }); if(!el.length) el = pool.slice(); }
-    else if(mode === "sfw"){ el = pool.filter(function(it){ return !it.x; }); if(!el.length) el = pool.slice(); }
+    if(mode === "nsfw"){ el = pool.filter(function(it){ return it.x; }); if(!el.length) el = pool.filter(function(it){ return !it.x; }); }
+    else if(mode === "sfw"){ el = pool.filter(function(it){ return !it.x; }); }
     else el = pool.slice();
     if(mood && mood !== "any"){
-      var mo = el.filter(function(it){ return !it.m || it.m === mood; });
-      if(mo.length) el = mo;
+      el = el.filter(function(it){ return !it.m || it.m === mood; });
     }
     return el;
   }
