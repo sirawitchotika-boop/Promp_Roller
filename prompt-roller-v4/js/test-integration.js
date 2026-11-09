@@ -106,6 +106,17 @@
       }));
     T("UI-1: unexpected navigation targets cannot change panels",
       PREdit.panelFor("unknown") === null);
+    var namedScene = { name: "Garden", values: {
+      camera: "eye level", action: "walking", light: "daylight", venue: "garden"
+    }};
+    T("UI-2: matching scene shows its preset name",
+      PRRender.sceneName([namedScene], namedScene.values) === "Garden");
+    T("UI-2: partial or changed scene is described as custom",
+      PRRender.sceneName([namedScene], { camera: "eye level", action: "running",
+        light: "daylight", venue: "garden" }) === "");
+    T("UI-2: legacy and incomplete preset entries do not crash scene status",
+      PRRender.sceneName([null, {}, { name: "Old", values: { venue: "garden" } }],
+        namedScene.values) === "");
     return results;
   };
   window.__EOF = window.__EOF || {};
