@@ -1,4 +1,4 @@
-# Prompt Roller v4.3 — Architecture & Technical Manual
+# Prompt Roller v4 — Architecture & Technical Manual
 
 > **Coherent scenes update:** Active scene slots are camera, action, light and venue.
 > Hands, prop and depth remain stored for old backup compatibility, but are not
@@ -23,7 +23,7 @@ Designed for 100% offline execution on Android (Spck Editor / Chrome) and static
 
 ## 1. Project File Tree & Module Responsibilities
 
-Rule: **Max 200 lines per file.** Plain HTML/CSS/JS, zero build step, zero external dependencies.
+Convention: **Each JavaScript module stays under 200 lines.** Plain HTML/CSS/JS, zero build step, zero external dependencies.
 
 ```text
 prompt-roller-v4/
@@ -33,7 +33,8 @@ prompt-roller-v4/
 ├── guard-import.txt      # Guard-tag test fixture (tagged + untagged items) for v4.1 gates
 ├── mood-import.txt       # Mood-tag test fixture (15 tagged + untagged items) for v4.3 gates
 ├── README.md             # Technical architecture, dependency graph & gate test manual
-├── WORKFLOW-GUIDE.md     # User manual, Exchange workflow & zero-red-flag maintenance guide
+├── WORKFLOW-GUIDE.md     # User manual, Exchange and backup workflow
+├── MAINTENANCE-HANDOFF.md # Current PR status and maintenance handoff
 ├── ROADMAP-v4.1-tag-guard.md  # Version history: v4.1 guard chain, v4.2 roll modes, v4.3 mood tags
 └── js/
     ├── data-rules.js     # PR_RULES: Hook, Tail, 18 Minors words, 44 Banned words, 10 Pairing rules
@@ -44,6 +45,7 @@ prompt-roller-v4/
     ├── engine.js         # PREngine: prompt assembly, {c} interpolation, validation, roll pick (parser delegated)
     ├── import.js         # PRImport: #list:/#preset: import + export line parser (split from engine.js, v4.4)
     ├── backup.js         # PRBackup: validate full-state restore
+    ├── storage.js        # PRStorage: verify saves and protect unreadable stored data
     ├── test.js           # Base isolated regression tests
     ├── test-preset.js    # Scene preset and lock tests
     ├── test-filter.js    # SFW and mood tests
@@ -54,7 +56,10 @@ prompt-roller-v4/
     ├── ask.js            # PRAsk: Exchange panel (export / Ask AI request builder / import), Inventory, Backup, Self-Test panels
     ├── editor.js         # PREdit: Edit tab controller, item search/filter, single add/delete & clear list
     ├── editor-io.js      # PREditIO: Exchange & Backup panel button wiring
-    ├── hooktail.js       # PRHookTail: user-editable Hook & Tail lines (saved in state)
+    ├── hooktail.js       # PRHookTail: editable Hook & Tail lines (saved in state)
+    ├── slot-editor.js    # PRSlotEditor: in-app Save/Cancel slot editor
+    ├── navigation.js     # PRNavigation: best-effort Back support
+    ├── draft.js          # PRDraft: same-tab draft recovery (sessionStorage)
     └── app.js            # Watchdog verification, boot badge, tab router, mode/mood/preset bindings
 ```
 
@@ -62,24 +67,23 @@ prompt-roller-v4/
 
 ## 2. Script Load Order & Dependency Graph
 
-All **20 JavaScript files** load in the order listed in `index.html`. Each sets a `window.__EOF` marker; `app.js` verifies all 20 before startup. Keep the load order and markers.
+All **24 JavaScript files** load in the exact order below. Each sets a `window.__EOF` marker; `app.js` checks all 24 before startup.
 
 ```text
-1–4   data-rules, data-subject, data-scene, presets  -> seed data
-5     engine-roll                                  -> filters, presets, tags
-6     engine                                       -> prompt and validation
-7–8   import, backup                               -> exchange and restore
-9–13  test, test-preset, test-filter, test-backup,
-      test-integration                             -> 93 regression checks (on demand)
-14    ui                                           -> state and roll actions
-15    render                                       -> Roll tab display
-16    ask                                          -> Edit panel layouts
-17–18 editor, editor-io                             -> Edit, import and backup controls
-19    hooktail                                     -> editable Hook and Tail
-20    app                                          -> startup and controls
+ 1–4   data-rules, data-subject, data-scene, presets   -> initial data
+ 5–6   engine-roll, engine                            -> roll rules and prompts
+ 7–9   import, backup, storage                        -> exchange and persistence
+10–14  test, test-preset, test-filter, test-backup,
+       test-integration                              -> regression checks
+15–17  ui, render, ask                                -> state and views
+18–20  editor, editor-io, hooktail                    -> Edit tools
+21–23  slot-editor, navigation, draft                 -> mobile editor, Back and drafts
+24     app                                           -> startup and event bindings
 ```
 
-The tests run when the user taps **Edit → Self-test → Run all tests**, not during normal startup.
+**Test count:** 126 on main after PR #20, and 130 after R1 PR #21 (four new checks). The displayed Self-test result is authoritative.
+
+The tests run when the user opens **Edit → Tools → Self-test → Run all tests**, not during normal startup.
 
 ---
 
@@ -176,9 +180,30 @@ One screen for the whole AI round trip, sharing one slot dropdown:
 
 ## 5. Risk-Based Verification
 
-1. **Every code PR:** run the built-in 93-check self-test suite on throwaway data. Confirm the startup badge shows `file complete` (20 scripts).
+1. **Every code PR:** run the current self-test on throwaway data (126 before R1, 130 after R1). Confirm the startup badge shows `file complete` (24 scripts).
 2. **Visible behavior changes:** check only the affected buttons on a phone. Use one or two short checks instead of a fixed six-step checklist.
 3. **Backup and saved-state changes:** download a full JSON backup first; test using disposable data and verify expected values survive.
 4. **Docs-only and unused-local cleanup:** no extra human gate is required.
 
 Report pass/fail totals and failures only. Isolated self-tests are not the same as real-device browser checks.
+
+---
+
+## 6. Mobile workflow and saved-data protection
+
+- **Slot editing:** Tap a value to open the dark Save/Cancel dialog. Cancel discards changes; saving empty text clears a slot. Both dismiss the mobile keyboard and try to restore scroll position.
+- **Prompt drafts:** A hand-edited Prompt Output is temporarily saved in `sessionStorage` for refresh in the same tab, if the generated prompt still matches its recorded base. Accepting Rebuild or Roll replaces the draft.
+- **Back:** From Edit, Android Back may return to Roll. From Roll, the browser may exit directly despite the app's best-effort Leave dialog. A website cannot guarantee interception of Android Back.
+- **Persistent data:** `localStorage["prompt_roller_v4_state"]` holds vocabulary, presets, locks, current values and Hook/Tail. `storage.js` verifies writes, shows persistent warnings when saving fails, and avoids overwriting unreadable saved data. When offered, download the original data before attempting recovery.
+- **Backup/restore:** Edit → Tools → Backup downloads JSON. Restore validates structure, requires confirmation, *replaces* the state and only reports a successful restore if saving succeeds.
+- **Import safety:** Scene JSON must pass backup-compatible structural checks; invalid scene objects and unsafe keys are rejected.
+- **Archived slots:** Hands, Prop and Depth remain importable/exportable and preserved in backups but are not active rollers.
+
+## 7. Small maintenance refactors
+
+- **R0:** Read-only audit of the 24 JS modules, stored-data paths, tests and documentation.
+- **R1 / PR #21:** Remove duplicated JSON-scene parsing and registration in `js/import.js`. `PREngine.parseImport` remains unchanged externally; four new regression checks increase the suite to 130.
+- **R2 / PR #22:** Share existing download mechanics in `js/editor-io.js` for TXT export and JSON backup; filenames, file formats, and cleanup timing are unchanged.
+- **Docs / PR #23:** This manual, workflow guide, history and a new [maintenance handoff](MAINTENANCE-HANDOFF.md). Merge **after** the two code PRs.
+
+No new framework, bundler, visual redesign, storage migration or Roll behavior change was introduced. Never auto-merge PRs.
