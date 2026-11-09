@@ -1,7 +1,7 @@
 // js/editor.js - Full Edit Tab Controller (Lists, Scenes, Self-Test; panel wiring lives in editor-io.js)
 (function(){
   var E = window.PREngine, A = window.PRAsk, SLOT_NAMES = A.SLOT_NAMES;
-  var editQ = {}, expanded = {}, testRan = false;
+  var editQ = {}, expanded = {}, testResults = null;
   function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
   function fillDropdown(){
     var sel = document.getElementById("editSel");
@@ -72,7 +72,7 @@
   }
   function wireSubPanels(val){
     var s = window.PRUI.getState();
-    if(val === "__exchange") PREditIO.wireExchange(s, applyImportResult, render);
+    if(val === "__exchange") PREditIO.wireExchange(s, applyImportResult);
     else if(val === "__backup") PREditIO.wireBackup(s, render);
   }
   function render(){
@@ -84,7 +84,7 @@
     if(val === "__exchange"){ box.innerHTML = A.renderExchangePanel(); wireSubPanels(val); return; }
     if(val === "__backup"){ box.innerHTML = A.renderBackupPanel(); wireSubPanels(val); return; }
     if(val === "__hooktail"){ box.innerHTML = window.PRHookTail.panel(); window.PRHookTail.wire(render); return; }
-    if(val === "__test"){ box.innerHTML = A.renderTestPanel(testRan); return; }
+    if(val === "__test"){ box.innerHTML = A.renderTestPanel(testResults); return; }
     if(val === "__scenes"){ box.innerHTML = renderScenesEditor(); return; }
     var s = window.PRUI.getState(), list = s.lists[val] || [], q = editQ[val] || "";
     var h = "<div class='hint'><b>" + list.length + " items</b> in [" + (SLOT_NAMES[val]||val) + "] · <span class='dot v'></span>verified · 🔥 spicy · [M:] mood</div>";
@@ -112,10 +112,10 @@
       if(!b) return;
       var act = b.dataset.eact, slot = b.dataset.slot, idx = parseInt(b.dataset.idx, 10), s = window.PRUI.getState();
       if(act === "runtests"){
-        testRan = true; render();
-        var list = window.PRTest ? window.PRTest.run() : [];
-        var pass = list.filter(function(r){ return r.pass; }).length;
-        window.PRUI.toast("self-test: " + pass + " / " + list.length + " passed");
+        testResults = window.PRTest ? window.PRTest.run() : [];
+        render();
+        var pass = testResults.filter(function(r){ return r.pass; }).length;
+        window.PRUI.toast("self-test: " + pass + " / " + testResults.length + " passed");
       }
       else if(act === "exp"){ expanded["i:" + slot + idx] = !expanded["i:" + slot + idx]; render(); }
       else if(act === "del"){ s.lists[slot].splice(idx, 1); window.PRUI.saveStore(); window.PRUI.renderAll(); render(); window.PRUI.toast("deleted"); }
