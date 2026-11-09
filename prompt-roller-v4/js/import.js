@@ -30,6 +30,17 @@
       });
     }
     if(curList) itemsByList[curList] = [];
+    // Both inline #preset JSON and JSON lines under #presets: share one path.
+    function addJsonPreset(raw){
+      try {
+        var preset = JSON.parse(raw.replace(/,$/, ""));
+        if(!validJsonPreset(preset)){ bad++; return; }
+        var key = preset.name.toLowerCase().trim();
+        if(seenPresets[key]){ duplicates++; return; }
+        seenPresets[key] = true;
+        presets.push(preset); presetsAdded++;
+      } catch(e){ bad++; }
+    }
     for(var i = 0; i < lines.length; i++){
       var line = lines[i].trim();
       if(!line || line.startsWith("//")) continue;
@@ -42,14 +53,7 @@
         inPresetsBlock = false;
         if(E.checkMinors(pRest)){ blocked++; curPreset = null; continue; }
         if(pRest.startsWith("{")){
-          try {
-            var pj = JSON.parse(pRest.replace(/,$/, ""));
-            if(validJsonPreset(pj)){
-              var pk = pj.name.toLowerCase().trim();
-              if(seenPresets[pk]){ duplicates++; }
-              else { seenPresets[pk] = true; presets.push(pj); presetsAdded++; }
-            } else bad++;
-          } catch(e){ bad++; }
+          addJsonPreset(pRest);
           curPreset = null; continue;
         }
         var pSpicy = (mPreset[1] === "!") || pRest.startsWith("!");
@@ -80,14 +84,7 @@
       }
       if(inPresetsBlock && line.startsWith("{")){
         if(E.checkMinors(line)){ blocked++; continue; }
-        try {
-          var pj2 = JSON.parse(line.replace(/,$/, ""));
-          if(validJsonPreset(pj2)){
-            var pk3 = pj2.name.toLowerCase().trim();
-            if(seenPresets[pk3]) duplicates++;
-            else { seenPresets[pk3] = true; presets.push(pj2); presetsAdded++; }
-          } else bad++;
-        } catch(e){ bad++; }
+        addJsonPreset(line);
         continue;
       }
       if(curPreset){
