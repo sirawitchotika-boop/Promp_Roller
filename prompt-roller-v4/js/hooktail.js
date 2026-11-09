@@ -10,11 +10,10 @@
     var R = window.PR_RULES, s = window.PRUI.getState();
     if(!R.__DEF_HOOK) R.__DEF_HOOK = R.HOOK;
     if(!R.__DEF_TAIL) R.__DEF_TAIL = R.TAIL;
-    if(s.hook === undefined || s.tail === undefined){
-      s.hook = R.__DEF_HOOK;
-      s.tail = R.__DEF_TAIL;
-      window.PRUI.saveStore();
-    }
+    var changed = false;
+    if(s.hook === undefined){ s.hook = R.__DEF_HOOK; changed = true; }
+    if(s.tail === undefined){ s.tail = R.__DEF_TAIL; changed = true; }
+    if(changed) window.PRUI.saveStore();
     sync();
   }
   function sync(){
