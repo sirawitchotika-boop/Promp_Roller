@@ -74,9 +74,11 @@
           if(!confirm(warning + "\nContinue?")) return;
           var restore = window.PRBackup.restore(parsed, s);
           if(!restore.ok){ alert(restore.error); return; }
-          window.PRUI.saveStore();
+          var saved = window.PRUI.saveStore(true);
           if(window.PRHookTail) window.PRHookTail.seed();
-          window.PRUI.renderAll(); rerender(); alert("Backup restored!");
+          window.PRUI.renderAll(); rerender();
+          if(!saved){ alert("Backup loaded in this tab, but could NOT be saved. Download a backup before leaving."); return; }
+          alert("Backup restored!");
         }
         catch(err){ alert("Invalid backup JSON file"); }
       };

@@ -144,6 +144,12 @@
       PRDraft.decode("{damaged", "seed") === null);
     T("UI-4C: unchanged generated text is not an edited draft",
       PRDraft.decode(JSON.stringify({ base: "seed", text: "seed" }), "seed") === null);
+    T("Save safety: legacy saves with missing optional fields are accepted",
+      PRStorage.isValid({ lists: { eyes: [{ t: "blue eyes" }] } }));
+    T("Save safety: invalid list structures are rejected",
+      !PRStorage.isValid({ lists: { eyes: "not an array" } }));
+    T("Save safety: unsafe keys are rejected",
+      !PRStorage.isValid(JSON.parse('{"lists":{"__proto__":[{"t":"x"}]}}')));
     return results;
   };
   window.__EOF = window.__EOF || {};
