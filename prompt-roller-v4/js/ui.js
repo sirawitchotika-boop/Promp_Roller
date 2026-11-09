@@ -179,15 +179,15 @@
           saveStore(); PRRender.renderAll(true);
         }
         else if(act === "edit" && slot){
-          var val = prompt("Edit slot [" + slot + "]:\n(Empty = clear slot)", S.current[slot] || "");
-          if(val !== null){
-            var minor = E.checkMinors(val);
-            if(minor){ alert("BLOCKED: Minors word '" + minor + "' is strictly prohibited."); return; }
-            S.current[slot] = val.trim();
-            if(slot === "outfit") S.sceneOutfit = S.current.outfit; // Keep manual clothing on Subject rolls.
-            if(val.trim()) S.custom[slot] = true; else delete S.custom[slot];
+          PRSlotEditor.open(slot, S.current[slot] || "", function(value){
+            var minor = E.checkMinors(value);
+            if(minor) return "Blocked term: " + minor;
+            S.current[slot] = value.trim();
+            if(slot === "outfit") S.sceneOutfit = S.current.outfit;
+            if(value.trim()) S.custom[slot] = true; else delete S.custom[slot];
             saveStore(); PRRender.renderAll();
-          }
+            return "";
+          });
         }
       });
     }
