@@ -161,6 +161,21 @@
     var blankPreset = PRImport.parse('#preset: !', null, { body: [] }, []);
     T("Save safety: empty imported scene names are rejected",
       blankPreset.presetsAdded === 0 && blankPreset.bad === 1);
+    var jsonLine = '{"name":"R1 Test","values":{"camera":"eye","action":"walk","light":"sun","venue":"park"}}';
+    var inline = PRImport.parse("#preset: " + jsonLine, null, { body: [] }, []);
+    var block = PRImport.parse("#presets:\n" + jsonLine + "\n" + jsonLine, null, { body: [] }, []);
+    var duplicate = PRImport.parse("#preset: " + jsonLine, null,
+      { body: [] }, [{ name: "R1 Test", values: {} }]);
+    var broken = PRImport.parse("#presets:\n{\"name\":\"Bad\",\"values\":\"text\"}", null,
+      { body: [] }, []);
+    T("R1: inline JSON scene import still accepts a valid preset",
+      inline.presetsAdded === 1 && inline.bad === 0);
+    T("R1: JSON block accepts first and counts duplicate",
+      block.presetsAdded === 1 && block.duplicates === 1 && block.bad === 0);
+    T("R1: JSON preset duplicate check respects existing names",
+      duplicate.presetsAdded === 0 && duplicate.duplicates === 1);
+    T("R1: invalid JSON block scene stays rejected",
+      broken.presetsAdded === 0 && broken.bad === 1);
     return results;
   };
   window.__EOF = window.__EOF || {};
