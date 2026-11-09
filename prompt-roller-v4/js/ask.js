@@ -72,7 +72,7 @@
 
   // ONE panel: export -> request -> answer import, all sharing one slot dropdown
   function renderExchangePanel(){
-    var h = "<div class='hint'>One screen for the AI round trip: export a slot, build the request, paste the answer back. Auto-detect = all 14 slots + presets.</div>";
+    var h = "<div class='hint'>One screen for the AI round trip: export a slot, build the request, paste the answer back. Auto-detect = all 11 active slots + presets.</div>";
     h += "<div class='row'><select id='exSlotSel' style='flex:1'>" + slotOptionsHTML(true) + "</select></div>";
     h += "<div class='sect' style='margin-top:8px'>Export</div>";
     h += "<div class='row'><button class='btn sm' id='btnExCopySlot'>📋 Copy slot</button>";
