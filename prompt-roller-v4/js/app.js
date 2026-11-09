@@ -29,7 +29,7 @@
   }
 
   function initApp(){
-    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine-roll", "engine", "import", "backup", "test", "test-preset", "test-filter", "test-backup", "test-integration", "ui", "render", "ask", "editor", "editor-io", "hooktail", "app"];
+    var required = ["data-rules", "data-subject", "data-scene", "presets", "engine-roll", "engine", "import", "backup", "test", "test-preset", "test-filter", "test-backup", "test-integration", "ui", "render", "ask", "editor", "editor-io", "hooktail", "slot-editor", "app"];
     var missing = required.filter(function(f){ return !window.__EOF || !window.__EOF[f]; });
     var badge = document.getElementById("fileBadge");
 
@@ -39,6 +39,7 @@
       PRUI.init();
       if(window.PRHookTail){ window.PRHookTail.seed(); PRUI.renderAll(); }
       if(window.PREdit) window.PREdit.init();
+      if(window.PRSlotEditor) window.PRSlotEditor.init();
       bindControls();
     } else {
       var err = window.__bootErr || ("Missing or cut file(s): " + missing.join(", "));

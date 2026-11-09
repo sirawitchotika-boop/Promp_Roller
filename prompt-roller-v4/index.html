@@ -104,6 +104,20 @@
     </div>
   </main>
 
+  <dialog class="slot-edit-dialog" id="slotEditDialog" aria-labelledby="slotEditTitle">
+    <div class="slot-edit-body">
+      <h2 id="slotEditTitle">Edit slot</h2>
+      <p class="hint">Edit this value. Leave it empty to clear the slot.</p>
+      <label for="slotEditInput" class="control-label">Slot text</label>
+      <textarea id="slotEditInput" rows="4" spellcheck="false"></textarea>
+      <p id="slotEditError" class="slot-edit-error" role="alert" hidden></p>
+      <div class="row slot-edit-actions">
+        <button type="button" class="btn sm" id="slotEditCancel">Cancel</button>
+        <button type="button" class="btn sm" id="slotEditSave">Save changes</button>
+      </div>
+    </div>
+  </dialog>
+
   <div class="toast" id="toast" role="status" aria-live="polite">copied</div>
 
   <script src="js/data-rules.js"></script>
@@ -125,6 +139,7 @@
   <script src="js/editor.js"></script>
   <script src="js/editor-io.js"></script>
   <script src="js/hooktail.js"></script>
+  <script src="js/slot-editor.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -129,6 +129,10 @@
       sampleReport.indexOf("<details open") < 0);
     T("UI-3: test result labels are escaped before HTML display",
       PRAsk.renderTestPanel([{ pass: false, name: "<bad>" }]).indexOf("&lt;bad&gt;") >= 0);
+    T("UI-4A: all active slots support the in-app editor",
+      PREngine.ALL_SLOTS.every(function(k){ return PRSlotEditor.canOpen(k); }));
+    T("UI-4A: unknown and archived slots are not editable",
+      !PRSlotEditor.canOpen("missing") && !PRSlotEditor.canOpen("hands"));
     return results;
   };
   window.__EOF = window.__EOF || {};
