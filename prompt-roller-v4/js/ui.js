@@ -102,42 +102,13 @@
         var act = actEl.dataset.act, row = actEl.closest(".slot"), slot = row ? row.dataset.slot : null;
         if(act === "lock" && slot){ S.locked[slot] = !S.locked[slot]; saveStore(); PRRender.renderAll(); }
         else if(act === "roll" && slot){
-          if(slot === "outfit"){
-            if(S.locked.outfit){ toast("Unlock Outfit to roll"); return; }
-            var outfitCtx = PRRoll.ctxFromCurrent(S.lists, S.current);
-            var outfitPick = PRRoll.pickDifferentOutfit(
-              S.lists.outfit, S.mode, outfitCtx, S.mood, S.current.outfit);
-            if(!outfitPick){ toast("No other matching outfit in your list"); return; }
-            S.current.outfit = outfitPick.t;
-            S.sceneOutfit = outfitPick.t; // Keep Subject rolls from undoing this selection.
-            delete S.custom.outfit;
-            saveStore(); PRRender.renderAll();
-            return;
-          }
-          var guardAware = window.PRRoll && PRRoll.pickGuarded &&
-            (E.SLOTS_SCENE.indexOf(slot) >= 0 || slot === "outfit");
-          if(E.SLOTS_SCENE.indexOf(slot) >= 0 && window.PRRoll){
-            var scene = PRRoll.rollScene(S.lists, S.mode, S.locked, S.current, S.mood, S.presets);
-            if(!scene.matched){ toast("No matching scene preset - unlock a scene slot"); return; }
-            Object.keys(scene.vals).forEach(function(k){
-              if(!S.locked[k]){ S.current[k] = scene.vals[k]; delete S.custom[k]; }
-            });
-            S.sceneOutfit = scene.outfit || S.current.outfit || "";
-            if(scene.outfit && !S.locked.outfit){
-              S.current.outfit = scene.outfit; delete S.custom.outfit;
-            }
-          } else if(guardAware){
-            if(slot === "outfit" && S.sceneOutfit){
-              S.current.outfit = S.sceneOutfit;
-            } else {
-              var ctx = PRRoll.ctxFromCurrent(S.lists, S.current);
-              var gPick = PRRoll.pickGuarded(S.lists[slot], S.mode, ctx, S.mood);
-              S.current[slot] = gPick ? gPick.t : "";
-            }
-          } else {
-            S.current[slot] = E.pickSlot(S.lists[slot], S.mode, S.mood);
-          }
-          delete S.custom[slot]; saveStore(); PRRender.renderAll();
+          if(S.locked[slot]){ toast("Unlock " + slot + " to roll"); return; }
+          var next = PRRoll.rollOneSlot(slot, S.current, S.lists, S.mode, S.mood);
+          if(!next){ toast("No other matching " + slot + " in your list"); return; }
+          S.current = next;
+          if(slot === "outfit") S.sceneOutfit = next.outfit;
+          delete S.custom[slot];
+          saveStore(); PRRender.renderAll();
         }
         else if(act === "edit" && slot){
           var val = prompt("Edit slot [" + slot + "]:\n(Empty = clear slot)", S.current[slot] || "");

@@ -178,6 +178,17 @@
         { t: "spicy dress", x: 1, m: "tease" }
       ], "sfw", {}, "tease", "old outfit").t === "clean shirt");
 
+    var board = {}; E.ALL_SLOTS.forEach(function(k){ board[k] = "old " + k; });
+    var isolated = E.ALL_SLOTS.every(function(k){
+      var pool = {}; pool[k] = [{ t: "new " + k }];
+      var next = PRRoll.rollOneSlot(k, board, pool, "sfw", "any");
+      return next && next[k] === "new " + k && E.ALL_SLOTS.every(function(other){
+        return other === k || next[other] === board[other]; });
+    });
+    T("single dice: all 11 slots change only themselves", isolated);
+    T("single dice: original board unchanged", board.camera === "old camera");
+    T("single dice: no alternate keeps board unchanged",
+      PRRoll.rollOneSlot("camera", board, {camera:[{t:"old camera"}]}, "sfw", "any") === null);
     return results;
   }
 
