@@ -44,6 +44,7 @@
     <div class="card">
       <textarea id="out" oninput="PRUI.onOutEdit()"></textarea>
       <div class="counter" id="counter"></div>
+      <div class="draft-status" id="draftStatus" aria-live="polite" hidden>Edited draft — Rebuild or Roll will replace your text.</div>
       <div class="warns" id="warns" style="display:none"></div>
       <div class="row" style="margin-top:8px">
         <button class="btn sm" onclick="PRUI.copy(document.getElementById('out').value, 'copied')">📋 Copy</button>

@@ -58,6 +58,43 @@
         spicyScene, "sfw", "any") &&
       PRUI.canUseOutfit("preset-only outfit", sceneVals, outfitLists,
         spicyScene, "mix", "any"));
+    // UI-0 guards run on disposable values and leave the live editor untouched.
+    var choose = PRRender.shouldReplaceDraft;
+    T("UI-0: unrelated render keeps manually edited draft", !choose("generated", "my draft", false));
+    T("UI-0: unchanged prompt updates automatically", choose("generated", "generated", false));
+    T("UI-0: explicit rebuild may replace an edited draft", choose("generated", "my draft", true));
+    var sceneValues = { camera: "front", action: "walking", light: "soft",
+      venue: "garden" }, existing = [{ name: "Garden", values: sceneValues }];
+    T("UI-0: complete unique scene may be saved",
+      PRApp.validatePreset("Studio", sceneValues, existing) === "");
+    T("UI-0: duplicate scene names are refused regardless of case",
+      !!PRApp.validatePreset(" garden ", sceneValues, existing));
+    T("UI-0: incomplete scenes cannot be saved",
+      !!PRApp.validatePreset("Studio", { camera: "front", action: "",
+        light: "soft", venue: "garden" }, existing));
+    var originalConfirm = window.confirm, asked = "";
+    window.confirm = function(msg){ asked = msg; return false; };
+    T("UI-0: deletion cancellation is available",
+      !PREdit.confirmDelete("test item") && asked.indexOf("cannot be undone") >= 0);
+    window.confirm = originalConfirm;
+    var get = PRUI.getState, save = PRUI.saveStore, hook = PR_RULES.HOOK,
+      tail = PR_RULES.TAIL, saves = 0, partial = { hook: "My special hook" };
+    try {
+      PRUI.getState = function(){ return partial; };
+      PRUI.saveStore = function(){ saves++; };
+      PRHookTail.seed();
+      T("UI-0: missing Tail keeps existing custom Hook",
+        partial.hook === "My special hook" &&
+        partial.tail === PR_RULES.__DEF_TAIL && saves === 1);
+      partial = { tail: "My special tail" }; saves = 0;
+      PRHookTail.seed();
+      T("UI-0: missing Hook keeps existing custom Tail",
+        partial.tail === "My special tail" &&
+        partial.hook === PR_RULES.__DEF_HOOK && saves === 1);
+    } finally {
+      PRUI.getState = get; PRUI.saveStore = save;
+      PR_RULES.HOOK = hook; PR_RULES.TAIL = tail;
+    }
     return results;
   };
   window.__EOF = window.__EOF || {};

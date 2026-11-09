@@ -11,6 +11,18 @@
   }
   window.showTab = showTab;
 
+  function validatePreset(name, vals, presets){
+    if(!name || !name.trim()) return "Enter a preset name.";
+    if((presets || []).some(function(p){
+      return p && typeof p.name === "string" &&
+        p.name.trim().toLowerCase() === name.trim().toLowerCase();
+    })) return "A scene preset with that name already exists.";
+    var missing = PREngine.SLOTS_SCENE.filter(function(k){
+      return typeof vals[k] !== "string" || !vals[k].trim();
+    });
+    return missing.length ? "Fill all four Scene slots before saving: " + missing.join(", ") : "";
+  }
+
   function initApp(){
     var required = ["data-rules", "data-subject", "data-scene", "presets", "engine-roll", "engine", "import", "backup", "test", "test-preset", "test-filter", "test-backup", "test-integration", "ui", "render", "ask", "editor", "editor-io", "hooktail", "app"];
     var missing = required.filter(function(f){ return !window.__EOF || !window.__EOF[f]; });
@@ -68,6 +80,8 @@
       var s = PRUI.getState(), vals = {};
       PREngine.SLOTS_SCENE.forEach(function(slot){ vals[slot] = s.current[slot]||""; });
       vals.outfit = s.current.outfit || ""; // Linked scene clothing.
+      var error = validatePreset(name, vals, s.presets);
+      if(error){ alert(error); return; }
       // Auto-tag: saving while a mood is selected tags the new preset with it.
       var moodTag = (s.mood && s.mood !== "any") ? s.mood : undefined;
       s.presets.push({ name: name, values: vals, m: moodTag });
@@ -77,6 +91,7 @@
     });
   }
 
+  window.PRApp = { validatePreset: validatePreset };
   window.addEventListener("DOMContentLoaded", initApp);
   window.__EOF = window.__EOF || {};
   window.__EOF["app"] = true;

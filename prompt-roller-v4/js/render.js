@@ -27,11 +27,25 @@
     });
   }
 
-  function renderPrompt(){
+  var lastBuilt = null;
+  function shouldReplaceDraft(previous, text, force){
+    return !!force || previous === null || text === previous;
+  }
+  function isEdited(){
+    var out = document.getElementById("out");
+    return !!out && !shouldReplaceDraft(lastBuilt, out.value, false);
+  }
+  function confirmReplace(){
+    return !isEdited() || confirm("Replace your hand-edited Prompt Output? Your edits cannot be undone.");
+  }
+  function renderPrompt(force){
     var S = window.PRUI.getState();
     var full = E.buildPrompt(S.current);
     var out = document.getElementById("out");
-    if(out) out.value = full;
+    if(out && shouldReplaceDraft(lastBuilt, out.value, force)){
+      out.value = full;
+      lastBuilt = full;
+    }
     onOutEdit();
   }
 
@@ -43,6 +57,8 @@
       wBox.innerHTML = warns.length ? warns.join("<br>") : "";
       wBox.style.display = warns.length ? "block" : "none";
     }
+    var draft = document.getElementById("draftStatus");
+    if(draft) draft.hidden = !isEdited();
     var cnt = document.getElementById("counter");
     if(cnt){
       var wCount = full.trim() ? full.trim().split(/\s+/).length : 0;
@@ -92,19 +108,20 @@
     ms.value = cur;
   }
 
-  function renderAll(){
+  function renderAll(forcePrompt){
     window.PRUI.getState(); // runs normMode()
     renderSlots("slotsSubject", E.SLOTS_SUBJECT);
     renderSlots("slotsScene", E.SLOTS_SCENE);
     renderPresets();
     renderMoodSel();
-    renderPrompt();
+    renderPrompt(forcePrompt);
     var S = window.PRUI.getState();
     var seg = document.getElementById("modeSeg");
     if(seg) seg.querySelectorAll(".mbtn").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-mode") === S.mode); });
   }
 
-  window.PRRender = { renderAll: renderAll, renderPrompt: renderPrompt, onOutEdit: onOutEdit };
+  window.PRRender = { renderAll: renderAll, renderPrompt: renderPrompt,
+    onOutEdit: onOutEdit, confirmReplace: confirmReplace, shouldReplaceDraft: shouldReplaceDraft };
   window.__EOF = window.__EOF || {};
   window.__EOF["render"] = true;
 })();

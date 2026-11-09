@@ -3,6 +3,9 @@
   var E = window.PREngine, A = window.PRAsk, SLOT_NAMES = A.SLOT_NAMES;
   var editQ = {}, expanded = {}, testResults = null;
   function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function confirmDelete(label){
+    return confirm("Delete " + String(label || "").slice(0, 72) + "? This cannot be undone.");
+  }
   function fillDropdown(){
     var sel = document.getElementById("editSel");
     if(!sel) return;
@@ -118,7 +121,12 @@
         window.PRUI.toast("self-test: " + pass + " / " + testResults.length + " passed");
       }
       else if(act === "exp"){ expanded["i:" + slot + idx] = !expanded["i:" + slot + idx]; render(); }
-      else if(act === "del"){ s.lists[slot].splice(idx, 1); window.PRUI.saveStore(); window.PRUI.renderAll(); render(); window.PRUI.toast("deleted"); }
+      else if(act === "del"){
+        var item = (s.lists[slot] || [])[idx];
+        if(!item || !confirmDelete("item \"" + item.t + "\"")) return;
+        s.lists[slot].splice(idx, 1);
+        window.PRUI.saveStore(); window.PRUI.renderAll(); render(); window.PRUI.toast("deleted");
+      }
       else if(act === "clearAll"){
         if(confirm("Clear all " + (s.lists[slot]||[]).length + " items from [" + (SLOT_NAMES[slot]||slot) + "]?")){
           s.lists[slot] = []; s.current[slot] = ""; delete s.custom[slot];
@@ -141,10 +149,16 @@
       else if(act === "applySc"){
         var p = s.presets[idx];
         if(p) window.PRUI.applyPreset(p);
-      } else if(act === "delSc"){ s.presets.splice(idx, 1); window.PRUI.saveStore(); window.PRUI.renderAll(); render(); window.PRUI.toast("preset deleted"); }
+      } else if(act === "delSc"){
+        var scene = s.presets[idx];
+        if(!scene || !confirmDelete("scene preset \"" + scene.name + "\"")) return;
+        s.presets.splice(idx, 1);
+        window.PRUI.saveStore(); window.PRUI.renderAll(); render(); window.PRUI.toast("preset deleted");
+      }
     });
   }
-  window.PREdit = { init: function(){ fillDropdown(); render(); bindEditorClicks(); }, render: render, fillDropdown: fillDropdown };
+  window.PREdit = { init: function(){ fillDropdown(); render(); bindEditorClicks(); },
+    render: render, fillDropdown: fillDropdown, confirmDelete: confirmDelete };
   window.__EOF = window.__EOF || {};
   window.__EOF["editor"] = true;
 })();

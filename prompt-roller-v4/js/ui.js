@@ -78,8 +78,6 @@
     } else fallbackCopy(text, msg);
   }
 
-  // Keep linked clothing only when its saved tags match the active filters.
-  // Unknown legacy or manually saved clothing is not deleted.
   function canUseOutfit(text, current, lists, presets, mode, mood){
     if(!text) return false;
     var pool = (lists && lists.outfit) || [], all = presets || [];
@@ -127,8 +125,9 @@
       });
       roll = PRRoll.rollScene(S.lists, S.mode, S.locked, S.current, S.mood, candidates);
       if(!roll.matched){ toast("No scene preset matches mode, mood and locks"); return; }
-      S.sceneOutfit = roll.outfit || S.current.outfit || "";
     }
+    if(!PRRender.confirmReplace()) return;
+    if(roll) S.sceneOutfit = roll.outfit || S.current.outfit || "";
     slots.forEach(function(s){
       if(S.locked[s]) return;
       if(E.SLOTS_SCENE.indexOf(s) >= 0){
@@ -147,13 +146,12 @@
       }
       delete S.custom[s];
     });
-    // Only Roll All includes Outfit; Scene group must not change a Subject slot.
     if(roll && roll.matched && roll.outfit && slots.indexOf("outfit") >= 0 && !S.locked.outfit){
       if(allowedOutfit(roll.outfit, roll.vals)){
         S.current.outfit = roll.outfit; S.sceneOutfit = roll.outfit; delete S.custom.outfit;
       }
     }
-    saveStore(); PRRender.renderAll(); copy(document.getElementById("out").value, "rolled + copied");
+    saveStore(); PRRender.renderAll(true); copy(document.getElementById("out").value, "rolled + copied");
   }
 
   window.PRUI = {
@@ -161,7 +159,7 @@
     getState: function(){ normMode(); return S; },
     saveStore: saveStore,
     renderAll: function(){ PRRender.renderAll(); },
-    renderPrompt: function(){ PRRender.renderPrompt(); },
+    renderPrompt: function(){ if(PRRender.confirmReplace()) PRRender.renderPrompt(true); },
     onOutEdit: function(){ PRRender.onOutEdit(); },
     rollGroup: rollGroup, applyPreset: applyPreset, canUseOutfit: canUseOutfit, toast: toast, copy: copy,
     bindEvents: function(){
@@ -174,10 +172,11 @@
           if(S.locked[slot]){ toast("Unlock " + slot + " to roll"); return; }
           var next = PRRoll.rollOneSlot(slot, S.current, S.lists, S.mode, S.mood);
           if(!next){ toast("No other matching " + slot + " in your list"); return; }
+          if(!PRRender.confirmReplace()) return;
           S.current = next;
           if(slot === "outfit") S.sceneOutfit = next.outfit;
           delete S.custom[slot];
-          saveStore(); PRRender.renderAll();
+          saveStore(); PRRender.renderAll(true);
         }
         else if(act === "edit" && slot){
           var val = prompt("Edit slot [" + slot + "]:\n(Empty = clear slot)", S.current[slot] || "");
