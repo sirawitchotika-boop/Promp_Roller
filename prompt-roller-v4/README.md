@@ -9,7 +9,6 @@
 > Built-in presets have linked outfit choices. New saved presets also store the outfit.
 > Existing imported presets without outfits retain the current outfit.
 > If locked slots exclude every preset, the roll leaves the scene unchanged.
-> The legacy architecture below is retained for reference.
 >
 > **Backup and exchange update:** Exchange → Export All now includes archived
 > Hands, Prop and Depth lists, and importing that text restores those inactive
@@ -39,12 +38,17 @@ prompt-roller-v4/
 └── js/
     ├── data-rules.js     # PR_RULES: Hook, Tail, 18 Minors words, 44 Banned words, 10 Pairing rules
     ├── data-subject.js   # SEED_SUBJECT: 7 subject slot seed arrays (body, hairC, hairS, eyes, skin, face, outfit)
-    ├── data-scene.js     # SEED_SCENE: 7 scene slot seed arrays (camera, action, hands, light, prop, venue, depth)
+    ├── data-scene.js     # SEED_SCENE: 4 active scene lists + 3 archived lists
     ├── presets.js        # SEED_PRESETS: 6 SFW scene presets (Spicy presets imported via #preset:)
     ├── engine-roll.js    # PRRoll: roll modes + mood filter + [G:] guard tags + guarded scene roll chain (v4.3)
     ├── engine.js         # PREngine: prompt assembly, {c} interpolation, validation, roll pick (parser delegated)
     ├── import.js         # PRImport: #list:/#preset: import + export line parser (split from engine.js, v4.4)
-    ├── test.js           # PRTest: 37-check in-app self-test suite running on isolated mock data
+    ├── backup.js         # PRBackup: validate full-state restore
+    ├── test.js           # Base isolated regression tests
+    ├── test-preset.js    # Scene preset and lock tests
+    ├── test-filter.js    # SFW and mood tests
+    ├── test-backup.js    # Archived lists and backup tests
+    ├── test-integration.js # Scene and Outfit tests
     ├── ui.js             # PRUI: State store (localStorage), roll actions, Lock/Custom slot handlers
     ├── render.js         # PRRender: Roll tab view rendering (split from ui.js, v4.4)
     ├── ask.js            # PRAsk: Exchange panel (export / Ask AI request builder / import), Inventory, Backup, Self-Test panels
@@ -58,53 +62,35 @@ prompt-roller-v4/
 
 ## 2. Script Load Order & Dependency Graph
 
-Scripts in `index.html` **MUST** load in this exact sequence. Every script registers `window.__EOF["<name>"] = true` at its final line. The watchdog in `app.js` verifies all 15 markers.
+All **20 JavaScript files** load in the order listed in `index.html`. Each sets a `window.__EOF` marker; `app.js` verifies all 20 before startup. Keep the load order and markers.
 
 ```text
-[1. data-rules.js]   --> exports window.PR_RULES
-[2. data-subject.js] --> exports window.SEED_SUBJECT
-[3. data-scene.js]   --> exports window.SEED_SCENE
-[4. presets.js]      --> exports window.SEED_PRESETS
-[5. engine-roll.js]  --> exports window.PRRoll (modes + moods + guard tags + roll chain)
-       │
-       ▼
-[6. engine.js]       --> uses PR_RULES, PRRoll --> exports window.PREngine
-       │
-       ├──► [7. import.js]  --> uses PREngine, PRRoll --> exports window.PRImport
-       │         (PREngine.parseImport / exportText delegate here at call time)
-       │
-       ├──► [8. test.js]    --> uses PREngine, PRRoll, PR_RULES --> exports window.PRTest
-       │
-       ▼
-[9. ui.js]           --> uses PREngine, PRRoll, SEED_* --> exports window.PRUI (owns State 'S')
-       │
-       ├──► [10. render.js] --> uses PREngine, PRUI --> exports window.PRRender
-       │         (PRUI.renderAll / renderPrompt / onOutEdit delegate here at call time)
-       │
-       ├──► [11. ask.js]    --> uses PREngine, PR_RULES, PRRoll, PRUI --> exports window.PRAsk
-       └► [12. editor.js]   --> uses PREngine, PRUI, PRAsk --> exports window.PREdit
-       │        │
-       │        ▼
-       │   [13. editor-io.js] --> uses PREngine, PRAsk, PRUI --> exports window.PREditIO
-       │
-       ▼
-[14. hooktail.js]    --> exports window.PRHookTail
-       │
-       ▼
-[15. app.js]         --> Watchdog checks all 15 __EOF markers --> initializes PRUI, PREdit
+1–4   data-rules, data-subject, data-scene, presets  -> seed data
+5     engine-roll                                  -> filters, presets, tags
+6     engine                                       -> prompt and validation
+7–8   import, backup                               -> exchange and restore
+9–13  test, test-preset, test-filter, test-backup,
+      test-integration                             -> 87 regression checks (on demand)
+14    ui                                           -> state and roll actions
+15    render                                       -> Roll tab display
+16    ask                                          -> Edit panel layouts
+17–18 editor, editor-io                             -> Edit, import and backup controls
+19    hooktail                                     -> editable Hook and Tail
+20    app                                          -> startup and controls
 ```
+
+The tests run when the user taps **Edit → Self-test → Run all tests**, not during normal startup.
 
 ---
 
 ## 3. Prompt Assembly Order & Data Schema
 
 ### Fixed Prompt Build Order (`PREngine.buildPrompt`)
-1. `camera` (First)
-2. `HOOK`: `"2.5D semi-realistic illustration, young woman"` (user-editable via Hook & Tail panel)
-3. `body`
-4. `hair`: `hairS` with `{c}` replaced by `hairC` (or `"{hairS}, her {hairC} hair"` if no `{c}`)
-5. `eyes` -> 6. `face` -> 7. `skin` -> 8. `action` -> 9. `outfit` -> 10. `hands` -> 11. `light` -> 12. `prop` -> 13. `venue` -> 14. `depth`
-15. `TAIL`: `"No other people, no readable text."` (user-editable, Last)
+
+The prompt uses **11 active slots** plus the editable Hook and Tail in this order:
+`camera → HOOK → body → hair (hairS + hairC) → eyes → face → skin → action → outfit → light → venue → TAIL`.
+
+Archived Hands, Prop and Depth are not included in active prompts but stay in saved data and text exchange.
 
 ### Roll Modes (v4.2) & Mood Filter (v4.3)
 One shared pool filter (`PRRoll.filterPool`) feeds every roll path (Roll tab, single-slot dice):
@@ -113,14 +99,14 @@ One shared pool filter (`PRRoll.filterPool`) feeds every roll path (Roll tab, si
 - **Mix:** the full pool rolls.
 - **Mood:** `Any mood` = no filter. A selected mood = only items tagged with it plus all untagged items (same safety rule as guards). Presets follow the same rule; saving a preset while a mood is selected auto-tags it.
 
-### Guarded Scene Roll Chain (`PRRoll.rollScene`)
-Scene slots roll as a linked chain in fixed order: **venue -> action -> hands -> prop -> light -> depth -> camera**.
-- Venue rolls first and sets the guard context (`in`, `day`).
-- Every next slot rolls only from items whose guards match the context.
-- No match -> falls back to untagged items -> never a dead roll.
-- Locked scene slots keep their value AND donate their guards to the context.
-- Subject slots stay free dice; `outfit` is guard-aware (follows the scene context).
-- Presets bypass the chain entirely (they fill all 7 scene slots directly).
+### Coherent Scene Presets and Individual Dice
+
+- **Roll All:** rerolls unlocked Subject slots and chooses one complete four-slot scene preset; may update linked Outfit.
+- **Scene + Copy:** changes Camera, Action, Light and Venue together; **never changes Outfit**.
+- **Subject + Copy:** rerolls Subject slots, leaving scene slots unchanged.
+- **Apply Preset:** loads four required scene values, plus linked Outfit when available. A conflicting lock rejects the entire apply.
+- **Individual dice:** change only the selected slot, using saved lists plus mode, mood and guard checks.
+- **Compatibility:** old presets may omit Outfit; archived Hands, Prop and Depth are kept for backup and exchange, but not rolled.
 
 ### Item Object Schema
 ```json
@@ -143,11 +129,11 @@ Scene slots roll as a linked chain in fixed order: **venue -> action -> hands ->
 ### LocalStorage State Schema (`prompt_roller_v4_state`)
 - `mode` ("sfw" | "mix" | "nsfw"): Roll mode. Legacy `spicy` booleans auto-migrate (false -> sfw, true -> mix) then the key is dropped.
 - `mood` (string): "any" or one mood word.
-- `current` (object): Current active text string for each of the 14 slots.
+- `current` (object): Current values for 11 active slots; older archived keys may also exist.
 - `locked` (object): Map of `{ slotId: true }` for locked slots.
 - `custom` (object): Map of `{ slotId: true }` when a slot holds a hand-edited custom line.
-- `lists` (object): Map of all 14 slot arrays (`body`, `hairC`, etc.).
-- `presets` (array): 7-slot scene preset objects; may carry `x` (spicy) and `m` (mood).
+- `lists` (object): 11 active slot arrays, with optional archived Hands, Prop and Depth lists.
+- `presets` (array): Preset objects with four required scene fields, optional Outfit and archived fields; may carry `x` and `m`.
 - `hook` / `tail` (string): User-edited hook and tail lines.
 
 ---
@@ -169,29 +155,29 @@ full stack example [NOTE: keep] [G: in=indoor] [M: devoted]
 1. numbered item (numbering auto-stripped)
 ```
 
-- **`#list: <slot>`:** Starts an item section for any of the 14 slots.
+- **`#list: <slot>`:** Starts an item section for any of the 11 active or 3 archived slots.
 - **`[G: key=value, key=value]`:** Guard tag at end of line.
 - **`[M: mood]`:** Mood tag at end of line. `[G:]`, `[M:]` and `[NOTE:]` may appear in any order; export writes them as `[NOTE:] [G:] [M:]`.
 - **Malformed tags** (`[G: front]`, `[M:]`, `[guard: ...]`): bracket stripped entirely, item text kept clean.
 - **Codeblock fences** (``` lines from AI answers): skipped automatically.
-- **`#preset: <name>`:** Starts a 7-slot scene preset block (`camera:`, `action:`, `hands:`, `light:`, `prop:`, `venue:`, `depth:`). Modifiers: `!` prefix = spicy, `[M: mood]` suffix = mood tag (e.g. `#preset: !Night club [M: tease]`). Also supports single-line JSON.
+- **`#preset: <name>`:** Starts a preset block with required `camera:`, `action:`, `light:` and `venue:`; optional `outfit:` and archived `hands:`, `prop:` and `depth:` are preserved. `!` means spicy, and `[M: mood]` sets mood. Single-line JSON also works.
 - **Single-slot mode:** Select a target slot in the Exchange dropdown and paste plain lines directly (no `#list:` header needed).
 - **Safety:** Any line containing a prohibited minors word is strictly blocked at parser level and never enters storage.
 
 ### Exchange Panel
 One screen for the whole AI round trip, sharing one slot dropdown:
-- **Export:** `Copy slot` (clipboard) or `Download .txt` (auto filename `prompt-roller-io-<slot|all>-YYYYMMDD-HHMMSS.txt`). Auto-detect = all 14 slots + presets.
+- **Export:** `Copy slot` (clipboard) or `Download .txt` (auto filename `prompt-roller-io-<slot|all>-YYYYMMDD-HHMMSS.txt`). Auto-detect exports all 11 active lists, 3 archived lists and presets.
 - **Ask AI:** request builder for the selected slot (count / theme / spicy) — carries format rules, banned words, guard-tag AND mood-tag instructions and 3 style examples.
 - **Import:** paste box + `Import file` (.txt/.md) + `Clear box`. Auto-detect mode reads `#list:` headers.
-- **Backup / restore:** full-state JSON download (timestamped `prompt-roller-backup-YYYYMMDD-HHMMSS.json`) and file restore (partial JSON with only `lists` merges safely).
+- **Backup / restore:** full-state JSON download (timestamped `prompt-roller-backup-YYYYMMDD-HHMMSS.json`) and file restore. Restoring JSON **replaces** existing saved state after validation; lists-only JSON does **not** merge. Make a full backup first.
 
 ---
 
-## 5. Gate Test (6-Step Verification)
+## 5. Risk-Based Verification
 
-1. **Boot Badge:** Open `index.html` -> top header shows green `file complete`, no red banner (15 files verified).
-2. **Zero-Minors Block:** Tap any slot text on the Roll tab -> type `"a teen girl"` -> blocked immediately with alert naming `"teen"`.
-3. **Roll, Copy & Lock:** Tap `Roll all + copy` -> toast shows `rolled + copied`. Tap `Lock` on any slot -> button turns yellow `LOCKED` -> value stays fixed on next roll.
-4. **Fixture Imports:** Edit tab -> Exchange -> Auto-detect -> paste `hairS-import.txt` -> `Added 30 - skipped 1 duplicates - 0 bad - 0 blocked - box cleared`. Same flow with `mood-import.txt` -> `Added 15 - skipped 0 duplicates - 0 bad - 0 blocked - box cleared`.
-5. **Mode & Mood:** Set mode NSFW -> rolls draw spicy items only. Set mood Cold -> differently-tagged items and presets never appear; untagged ones still roll.
-6. **Self-Test Suite:** Edit tab -> Self-test (dev) -> `Run all tests` -> shows `37 / 37 passed` with timestamp.
+1. **Every code PR:** run the built-in 87-check self-test suite on throwaway data. Confirm the startup badge shows `file complete` (20 scripts).
+2. **Visible behavior changes:** check only the affected buttons on a phone. Use one or two short checks instead of a fixed six-step checklist.
+3. **Backup and saved-state changes:** download a full JSON backup first; test using disposable data and verify expected values survive.
+4. **Docs-only and unused-local cleanup:** no extra human gate is required.
+
+Report pass/fail totals and failures only. Isolated self-tests are not the same as real-device browser checks.
