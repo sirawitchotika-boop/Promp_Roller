@@ -22,7 +22,7 @@ Mobile app manual (Spck Editor / Chrome) and the external-AI vocabulary workflow
 - **Mood dropdown:** `Any mood` = no filter. Pick a mood (Devoted / Femdom / Tease / Shy / Cold / Jealous) = only items tagged with that mood plus all untagged items roll. Presets follow the same rule.
 - **3 main roll buttons:**
   - `Roll all + copy`: rerolls unlocked Subject slots, chooses a complete scene, and may update linked Outfit.
-  - `Subject + copy`: rerolls only the 7 character slots, scene stays.
+  - `Subject + copy`: rerolls only the 7 character slots; the scene stays. A linked Outfit is replaced only if its saved tags conflict with the selected mode or mood.
   - `Scene + copy`: selects one complete preset for Camera, Action, Light and Venue; does not change Outfit.
 - **Prompt Output box:**
   - Hand-edit freely (banned words are auto-checked).
@@ -44,7 +44,7 @@ Dropdown options:
 4. **Inventory overview:** totals per slot — items, verified, spicy — with jump-to-edit buttons.
 5. **Backup / restore:** download the full state as .json, restore from a file, or factory reset. Restore replaces the saved state after validation; a lists-only JSON does **not** merge. Keep a full backup first.
 6. **Hook & tail:** edit the fixed head/tail lines of every prompt. Saved in state, survives updates and backups.
-7. **Self-test (dev):** one tap runs the 87-check suite on throwaway data, once per tap.
+7. **Self-test (dev):** one tap runs the 93-check suite on throwaway data, once per tap.
 
 ---
 
