@@ -3,7 +3,9 @@
 > **Coherent scenes update:** Active scene slots are camera, action, light and venue.
 > Hands, prop and depth remain stored for old backup compatibility, but are not
 > rolled, shown as active slots or included in generated prompts.
-> A scene roll now selects ONE complete preset and matching outfit when available.
+> Roll All selects ONE complete scene preset and its linked outfit when available.
+> Roll Scene updates only the four scene slots; it leaves Outfit unchanged.
+> When Outfit is locked, a scene with conflicting linked clothing is not selected.
 > Built-in presets have linked outfit choices. New saved presets also store the outfit.
 > Existing imported presets without outfits retain the current outfit.
 > If locked slots exclude every preset, the roll leaves the scene unchanged.
