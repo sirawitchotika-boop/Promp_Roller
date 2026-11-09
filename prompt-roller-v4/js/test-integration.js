@@ -136,6 +136,14 @@
     T("UI-4B: only the app's own history entry counts as a guard",
       PRNavigation.isGuard({ prRollerGuard: true }) &&
       !PRNavigation.isGuard({}) && !PRNavigation.isGuard(null));
+    T("UI-4C: a matching draft can be recovered",
+      PRDraft.decode(JSON.stringify({ base: "seed", text: "edited" }), "seed") === "edited");
+    T("UI-4C: a draft from a different generated prompt is ignored",
+      PRDraft.decode(JSON.stringify({ base: "old", text: "edited" }), "new") === null);
+    T("UI-4C: damaged draft storage is ignored",
+      PRDraft.decode("{damaged", "seed") === null);
+    T("UI-4C: unchanged generated text is not an edited draft",
+      PRDraft.decode(JSON.stringify({ base: "seed", text: "seed" }), "seed") === null);
     return results;
   };
   window.__EOF = window.__EOF || {};
