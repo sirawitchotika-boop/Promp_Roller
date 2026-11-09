@@ -34,41 +34,50 @@
   </div>
 
   <main id="view-roll">
-    <button class="big" id="btnRollAll">🎲 Roll all + copy</button>
-    <div class="row">
-      <button class="half" id="btnRollSub">👤 Subject + copy</button>
-      <button class="half" id="btnRollScn">🎬 Scene + copy</button>
-    </div>
+    <section class="roll-actions" aria-label="Generate prompt">
+      <button class="big" id="btnRollAll">Roll all <span>+ copy prompt</span></button>
+      <div class="row roll-modes">
+        <button class="half" id="btnRollSub">Subject + copy</button>
+        <button class="half" id="btnRollScn">Scene + copy</button>
+      </div>
+      <p class="roll-note">Locked values stay in place. Scene rolls keep their linked values together.</p>
+    </section>
 
-    <div class="sect">Prompt Output</div>
-    <div class="card">
-      <textarea id="out" oninput="PRUI.onOutEdit()"></textarea>
+    <label class="sect roll-section-label" for="out">Prompt output <span>Edit before copying</span></label>
+    <div class="card prompt-card">
+      <textarea id="out" rows="7" spellcheck="false" oninput="PRUI.onOutEdit()"></textarea>
       <div class="counter" id="counter"></div>
-      <div class="draft-status" id="draftStatus" aria-live="polite" hidden>Edited draft — Rebuild or Roll will replace your text.</div>
+      <div class="draft-status" id="draftStatus" aria-live="polite" hidden>Hand-edited draft. Rebuild or Roll will ask before replacing it.</div>
       <div class="warns" id="warns" style="display:none"></div>
-      <div class="row" style="margin-top:8px">
-        <button class="btn sm" onclick="PRUI.copy(document.getElementById('out').value, 'copied')">📋 Copy</button>
-        <button class="btn sm" onclick="PRUI.renderPrompt()">↻ Rebuild (after hand edits)</button>
+      <div class="row prompt-actions">
+        <button class="btn sm" onclick="PRUI.copy(document.getElementById('out').value, 'copied')">Copy prompt</button>
+        <button class="btn sm" onclick="PRUI.renderPrompt()">Rebuild from slots</button>
       </div>
     </div>
 
-    <div class="sect">Scene Presets</div>
-    <div class="card">
-      <div class="row">
-        <select id="presetSel" style="flex:1"></select>
-        <button class="btn sm" id="btnApplyPreset">Apply</button>
+    <div class="sect roll-section-label">Scene presets <span>Camera · Action · Light · Venue</span></div>
+    <div class="scene-workspace">
+      <label class="control-label" for="presetSel">Choose a scene</label>
+      <div class="row scene-pick">
+        <select id="presetSel"></select>
+        <button class="btn sm" id="btnApplyPreset">Apply scene</button>
       </div>
-      <div class="row" style="margin-top:6px">
-        <input type="text" id="presetName" placeholder="preset name" style="flex:1">
-        <button class="btn sm" id="btnSavePreset">💾 Save current scene</button>
+      <p class="scene-status" id="sceneStatus" aria-live="polite"></p>
+      <div class="scene-save">
+        <label class="control-label" for="presetName">Save the current scene as a preset</label>
+        <div class="row scene-save-row">
+          <input type="text" id="presetName" placeholder="New scene name">
+          <button class="btn sm" id="btnSavePreset">Save scene</button>
+        </div>
       </div>
     </div>
 
-    <div class="sect">Subject (7 Slots)</div>
-    <div id="slotsSubject"></div>
+    <div class="sect roll-section-label">Subject <span>7 slots</span></div>
+    <p class="slot-tip">Tap a value to edit it. Lock to keep it; reroll to change just that slot.</p>
+    <div id="slotsSubject" class="slot-list"></div>
 
-    <div class="sect">Scene (4 Linked Slots)</div>
-    <div id="slotsScene"></div>
+    <div class="sect roll-section-label">Scene <span>4 linked slots</span></div>
+    <div id="slotsScene" class="slot-list"></div>
   </main>
 
   <main id="view-edit" style="display:none">

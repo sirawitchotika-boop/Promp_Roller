@@ -14,14 +14,18 @@
     slots.forEach(function(slot){
       var isLock = !!S.locked[slot], isCust = !!S.custom[slot];
       var val = S.current[slot] || "- empty -";
+      var label = (window.PRAsk && PRAsk.SLOT_NAMES[slot]) || slot;
       var row = document.createElement("div");
       row.className = "slot" + (isLock ? " locked" : "");
       row.dataset.slot = slot;
-      row.innerHTML = "<div class='sname'>" + slot + "</div>" +
-        "<div class='sval' data-act='edit'>" + (isCust ? "<span class='badge'>CUSTOM</span> " : "") + esc(val) + "</div>" +
+      row.innerHTML = "<div class='sname'>" + esc(label) + "</div>" +
+        "<button type='button' class='sval' data-act='edit' aria-label='Edit " + esc(label) + "'>" +
+          (isCust ? "<span class='slot-custom'>Custom</span> " : "") + esc(val) + "</button>" +
         "<div class='sact'>" +
-        "<button class='btn sm lk" + (isLock ? " on" : "") + "' data-act='lock'>" + (isLock ? "LOCKED" : "Lock") + "</button>" +
-        "<button class='btn sm' data-act='roll'>🎲</button>" +
+        "<button type='button' class='btn sm lk" + (isLock ? " on" : "") +
+          "' data-act='lock' aria-pressed='" + isLock + "' aria-label='" +
+          (isLock ? "Unlock " : "Lock ") + esc(label) + "'>" + (isLock ? "Locked" : "Lock") + "</button>" +
+        "<button type='button' class='btn sm dice' data-act='roll' aria-label='Reroll " + esc(label) + "'>↻</button>" +
         "</div>";
       c.appendChild(row);
     });
@@ -66,6 +70,16 @@
     }
   }
 
+  // A saved preset is current only if all four scene values match.
+  function sceneName(presets, current){
+    var match = (presets || []).filter(function(p){
+      return p && p.values && E.SLOTS_SCENE.every(function(k){
+        return p.values[k] === (current || {})[k];
+      });
+    })[0];
+    return match ? match.name : "";
+  }
+
   // Preset dropdown: SFW mode hides spicy; a selected mood hides differently-tagged presets.
   function renderPresets(){
     var S = window.PRUI.getState();
@@ -92,6 +106,13 @@
     });
     var chosen = previousMatches ? previous : (matching || previous);
     if(chosen !== null) sel.value = chosen;
+    var currentName = previousMatches ? S.presets[Number(previous)].name :
+      sceneName(S.presets, S.current);
+    var status = document.getElementById("sceneStatus");
+    if(status) status.textContent = currentName ? "Current scene: " + currentName :
+      "Current scene: Custom values";
+    var apply = document.getElementById("btnApplyPreset");
+    if(apply) apply.disabled = !sel.options.length;
   }
 
   // Mood dropdown: "Any mood" + the 6 built-in moods + the saved mood if custom.
@@ -121,7 +142,8 @@
   }
 
   window.PRRender = { renderAll: renderAll, renderPrompt: renderPrompt,
-    onOutEdit: onOutEdit, confirmReplace: confirmReplace, shouldReplaceDraft: shouldReplaceDraft };
+    onOutEdit: onOutEdit, confirmReplace: confirmReplace, shouldReplaceDraft: shouldReplaceDraft,
+    sceneName: sceneName };
   window.__EOF = window.__EOF || {};
   window.__EOF["render"] = true;
 })();
