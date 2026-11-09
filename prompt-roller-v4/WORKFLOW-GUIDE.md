@@ -1,5 +1,14 @@
 # Prompt Roller v4.3 — Complete User & Workflow Guide
 
+> **Coherent scenes update:** The scene roller now selects one complete
+> venue/action/light/camera preset instead of independently mixing scene fragments.
+> Hands, prop and depth are not active rollers or included in prompt output.
+> Built-in presets select matching outfits; saved presets include current outfits.
+> Older custom presets without outfits retain current clothing.
+> Existing backups are preserved. For incompatible locked scene slots,
+> unlock a scene slot before trying again. Older instructions below
+> describe previous v4.3 behavior.
+
 Mobile app manual (Spck Editor / Chrome) and the external-AI vocabulary workflow that never triggers red flags.
 
 ---
