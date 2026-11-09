@@ -5,7 +5,7 @@
   var MINORS_RE = R.MINORS.map(function(m){ return new RegExp("(?:^|\\W)" + m.replace(/ /g, "\\s+") + "(?:$|\\W)", "i"); });
   var BANNED_RE = R.BANNED.map(function(b){ return { re: new RegExp("(?:^|\\W)" + b[0].replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?:$|\\W)", "i"), w: b[0], why: b[1] }; });
   var SLOTS_SUBJECT = ["body", "hairC", "hairS", "eyes", "skin", "face", "outfit"];
-  var SLOTS_SCENE = ["camera", "action", "hands", "light", "prop", "venue", "depth"];
+  var SLOTS_SCENE = ["camera", "action", "light", "venue"]; // coherent linked scenes
   var ALL_SLOTS = SLOTS_SUBJECT.concat(SLOTS_SCENE);
   var Engine = {
     SLOTS_SUBJECT: SLOTS_SUBJECT,
@@ -31,8 +31,8 @@
         (cur.camera || "").trim(), R.HOOK, (cur.body || "").trim(),
         this.hairText(cur.hairS, cur.hairC), (cur.eyes || "").trim(),
         (cur.face || "").trim(), (cur.skin || "").trim(), (cur.action || "").trim(),
-        (cur.outfit || "").trim(), (cur.hands || "").trim(), (cur.light || "").trim(),
-        (cur.prop || "").trim(), (cur.venue || "").trim(), (cur.depth || "").trim(), R.TAIL
+        (cur.outfit || "").trim(), (cur.light || "").trim(),
+        (cur.venue || "").trim(), R.TAIL
       ];
       return order.filter(function(p){ return p && p.length > 0; }).join(", ");
     },
