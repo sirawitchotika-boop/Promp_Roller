@@ -55,13 +55,27 @@
     var S = window.PRUI.getState();
     var sel = document.getElementById("presetSel");
     if(!sel) return;
+    var oldValue = sel.value;
+    var oldOption = sel.options && sel.options[sel.selectedIndex];
+    var oldLabel = oldOption ? oldOption.textContent : "";
+    var previous = null, matching = null;
     sel.innerHTML = "";
     (S.presets || []).forEach(function(p, i){
+      if(!p || !p.values) return;
       if((S.mode === "sfw" && p.x) || (S.mood && S.mood !== "any" && p.m && p.m !== S.mood)) return;
       var opt = document.createElement("option");
       opt.value = i; opt.textContent = p.name + (p.x ? " [Spicy]" : "") + (p.m ? " [" + p.m + "]" : "");
       sel.appendChild(opt);
+      if(String(i) === oldValue && opt.textContent === oldLabel) previous = String(i);
+      if(matching === null && E.SLOTS_SCENE.every(function(k){ return p.values[k] === S.current[k]; }))
+        matching = String(i);
     });
+    // The current scene wins over a stale dropdown choice.
+    var previousMatches = previous !== null && E.SLOTS_SCENE.every(function(k){
+      return S.presets[parseInt(previous, 10)].values[k] === S.current[k];
+    });
+    var chosen = previousMatches ? previous : (matching || previous);
+    if(chosen !== null) sel.value = chosen;
   }
 
   // Mood dropdown: "Any mood" + the 6 built-in moods + the saved mood if custom.
