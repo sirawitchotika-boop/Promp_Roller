@@ -41,7 +41,7 @@
     // 7. Prompt build order (camera first, live hook second, tail last)
     var pTest = E.buildPrompt({ camera: "Eye level view", body: "curvy fit body" });
     T("build order: camera first", pTest.startsWith("Eye level view, " + R.HOOK));
-    T("build order: tail last", pTest.endsWith("No other people, no readable text."));
+    T("build order: tail last", pTest.endsWith(R.TAIL));
 
     // 8. hairText interpolation
     var h1 = E.hairText("long {c} hair", "golden blonde");
