@@ -11,7 +11,7 @@
   function normMode(){
     if(S.mode !== "sfw" && S.mode !== "nsfw" && S.mode !== "mix") S.mode = (S.spicy === false) ? "sfw" : "mix";
     if(S.spicy !== undefined) delete S.spicy;
-    if(!S.mood) S.mood = "any";
+    if(typeof S.mood !== "string" || !S.mood) S.mood = "any";
   }
 
   function initStore(){
