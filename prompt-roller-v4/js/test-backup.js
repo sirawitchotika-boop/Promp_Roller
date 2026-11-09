@@ -63,6 +63,13 @@
       B.restore(JSON.parse(JSON.stringify(full)), fresh).ok &&
       fresh.hook === "custom hook" && fresh.tail === "custom tail" &&
       fresh.lists.hands[0].m === "shy");
+    var partialState = { current: { venue: "old" }, locked: { venue: true },
+      lists: { outfit: [{ t: "old outfit" }] }, presets: [{ name: "Old", values: {} }] };
+    var partialRestore = B.restore({ lists: { outfit: [{ t: "new outfit" }] } }, partialState);
+    T("backup: lists-only restore replaces state, never silently merges",
+      partialRestore.ok && partialState.lists.outfit[0].t === "new outfit" &&
+      !partialState.current.venue && partialState.presets.length === 0 &&
+      !partialState.locked.venue);
     return results;
   };
   window.__EOF = window.__EOF || {};
