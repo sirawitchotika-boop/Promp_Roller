@@ -78,6 +78,26 @@
     } else fallbackCopy(text, msg);
   }
 
+  // Keep linked clothing only when its saved tags match the active filters.
+  // Unknown legacy or manually saved clothing is not deleted.
+  function canUseOutfit(text, current, lists, presets, mode, mood){
+    if(!text) return false;
+    var pool = (lists && lists.outfit) || [], all = presets || [];
+    if(pool.some(function(it){ return it.t === text; }) &&
+       !PRRoll.filterPool(pool, mode, mood).some(function(it){ return it.t === text; })) return false;
+    var linked = all.filter(function(p){
+      return p && p.values && E.SLOTS_SCENE.every(function(k){
+        return p.values[k] === (current || {})[k];
+      }) && (p.values.outfit || PRRoll.DEFAULT_OUTFITS[p.name] || "") === text;
+    });
+    return !linked.length || linked.some(function(p){
+      return PRRoll.filterPool(all, mode, mood).indexOf(p) >= 0;
+    });
+  }
+  function allowedOutfit(text, current){
+    return canUseOutfit(text, current, S.lists, S.presets, S.mode, S.mood);
+  }
+
   function applyPreset(preset){
     var result = PRRoll.applyScenePreset(preset, S.current, S.locked);
     if(!result.applied){ toast(result.reason); return false; }
@@ -94,13 +114,18 @@
     // Precheck so an empty filtered pool cannot erase a slot mid-roll.
     var missing = slots.filter(function(slot){
       if(S.locked[slot] || E.SLOTS_SCENE.indexOf(slot) >= 0) return false;
-      if(slot === "outfit" && hasChain && (S.sceneOutfit || slots.indexOf("venue") >= 0)) return false;
+      if(slot === "outfit" && hasChain &&
+         (slots.indexOf("venue") >= 0 || (S.sceneOutfit && (S.custom.outfit || allowedOutfit(S.sceneOutfit, S.current))))) return false;
       return !PRRoll.filterPool(S.lists[slot], S.mode, S.mood).length;
     });
     if(missing.length){ toast("No " + missing[0] + " choices match this mode/mood"); return; }
     var roll = null;
     if(hasChain && slots.indexOf("venue") >= 0){
-      roll = PRRoll.rollScene(S.lists, S.mode, S.locked, S.current, S.mood, S.presets);
+      var candidates = S.presets.filter(function(p){
+        var text = p && p.values && (p.values.outfit || PRRoll.DEFAULT_OUTFITS[p.name] || "");
+        return !text || canUseOutfit(text, p.values, S.lists, [p], S.mode, S.mood);
+      });
+      roll = PRRoll.rollScene(S.lists, S.mode, S.locked, S.current, S.mood, candidates);
       if(!roll.matched){ toast("No scene preset matches mode, mood and locks"); return; }
       S.sceneOutfit = roll.outfit || S.current.outfit || "";
     }
@@ -111,7 +136,12 @@
         return;
       }
       if(s === "outfit" && hasChain){
-        if(S.sceneOutfit) S.current[s] = S.sceneOutfit;
+        if(S.sceneOutfit && (S.custom.outfit || allowedOutfit(S.sceneOutfit, roll ? roll.vals : S.current)))
+          S.current[s] = S.sceneOutfit;
+        else {
+          S.current[s] = E.pickSlot(S.lists[s], S.mode, S.mood);
+          S.sceneOutfit = S.current[s];
+        }
       } else {
         S.current[s] = E.pickSlot(S.lists[s], S.mode, S.mood);
       }
@@ -119,7 +149,9 @@
     });
     // Only Roll All includes Outfit; Scene group must not change a Subject slot.
     if(roll && roll.matched && roll.outfit && slots.indexOf("outfit") >= 0 && !S.locked.outfit){
-      S.current.outfit = roll.outfit; delete S.custom.outfit;
+      if(allowedOutfit(roll.outfit, roll.vals)){
+        S.current.outfit = roll.outfit; S.sceneOutfit = roll.outfit; delete S.custom.outfit;
+      }
     }
     saveStore(); PRRender.renderAll(); copy(document.getElementById("out").value, "rolled + copied");
   }
@@ -131,7 +163,7 @@
     renderAll: function(){ PRRender.renderAll(); },
     renderPrompt: function(){ PRRender.renderPrompt(); },
     onOutEdit: function(){ PRRender.onOutEdit(); },
-    rollGroup: rollGroup, applyPreset: applyPreset, toast: toast, copy: copy,
+    rollGroup: rollGroup, applyPreset: applyPreset, canUseOutfit: canUseOutfit, toast: toast, copy: copy,
     bindEvents: function(){
       document.addEventListener("click", function(e){
         var actEl = e.target.closest("[data-act]");
