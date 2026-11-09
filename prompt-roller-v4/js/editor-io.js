@@ -1,6 +1,6 @@
 // js/editor-io.js - Exchange & Backup Panel Wiring (split from editor.js, v4.1 Phase 7)
 (function(){
-  var E = window.PREngine, A = window.PRAsk, SLOT_NAMES = A.SLOT_NAMES;
+  var E = window.PREngine, A = window.PRAsk;
 
   // Shared timestamp (YYYYMMDD-HHMMSS) for every downloaded file name.
   function p2(n){ return (n < 10 ? "0" : "") + n; }
@@ -9,7 +9,7 @@
     return "" + d.getFullYear() + p2(d.getMonth()+1) + p2(d.getDate()) + "-" + p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds());
   }
 
-  function wireExchange(s, applyImportResult, rerender){
+  function wireExchange(s, applyImportResult){
     var slotSel = document.getElementById("exSlotSel");
     function curSlot(){ return slotSel.value || null; }
     document.getElementById("btnExCopySlot").onclick = function(){
