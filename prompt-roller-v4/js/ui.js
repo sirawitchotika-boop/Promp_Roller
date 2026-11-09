@@ -5,6 +5,7 @@
   var S = { mode: "mix", mood: "any", current: {}, locked: {}, custom: {}, lists: {}, presets: [] };
 
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function record(v){ return !!v && typeof v === "object" && !Array.isArray(v); }
 
   // Old saves store spicy (boolean). Map it to a roll mode once, then drop the key.
   function normMode(){
@@ -17,7 +18,7 @@
     var raw = null;
     try { raw = localStorage.getItem(STORAGE_KEY); } catch(e){}
     if(raw){ try { S = JSON.parse(raw); } catch(e){ S = null; } }
-    if(!S || !S.lists || !Object.keys(S.lists).length){
+    if(!record(S) || !record(S.lists) || !Object.keys(S.lists).length){
       S = {
         mode: "mix", mood: "any", current: {}, locked: {}, custom: {},
         lists: Object.assign({}, clone(window.SEED_SUBJECT||{}), clone(window.SEED_SCENE||{})),
@@ -31,6 +32,15 @@
         S.sceneOutfit = S.current.outfit || "";
       }
     }
+    // Old or incomplete saves may omit these maps. Keep existing lists and presets.
+    if(!record(S.current)) S.current = {};
+    if(!record(S.locked)) S.locked = {};
+    if(!record(S.custom)) S.custom = {};
+    E.ALL_SLOTS.forEach(function(slot){
+      if(S.current[slot] !== undefined && typeof S.current[slot] !== "string")
+        S.current[slot] = "";
+    });
+    if(typeof S.sceneOutfit !== "string") S.sceneOutfit = S.current.outfit || "";
     if(!Array.isArray(S.presets)) S.presets = clone(window.SEED_PRESETS || []);
     normMode();
     saveStore();
