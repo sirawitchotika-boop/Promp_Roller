@@ -99,7 +99,8 @@
       }
       delete S.custom[s];
     });
-    if(roll && roll.matched && roll.outfit && !S.locked.outfit){
+    // Only Roll All includes Outfit; Scene group must not change a Subject slot.
+    if(roll && roll.matched && roll.outfit && slots.indexOf("outfit") >= 0 && !S.locked.outfit){
       S.current.outfit = roll.outfit; delete S.custom.outfit;
     }
     saveStore(); PRRender.renderAll(); copy(document.getElementById("out").value, "rolled + copied");
