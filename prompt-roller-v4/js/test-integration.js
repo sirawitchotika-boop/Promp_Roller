@@ -35,6 +35,29 @@
     T("integration: single dice still keeps outfit and venue",
       solo && solo.camera === "Eye level" &&
       solo.outfit === "red dress" && solo.venue === "at the park");
+    // Mode/mood checks also apply when an Outfit comes from a prior scene.
+    var sceneVals = { camera: "Eye level", action: "walking",
+      light: "warm lamp", venue: "in a cafe" };
+    var outfitLists = { outfit: [
+      { t: "clean jacket" }, { t: "spicy dress", x: 1 },
+      { t: "cold coat", m: "cold" }, { t: "tease coat", m: "tease" }
+    ] };
+    T("outfit reuse: SFW rejects previously spicy clothing",
+      !PRUI.canUseOutfit("spicy dress", sceneVals, outfitLists, [], "sfw", "any"));
+    T("outfit reuse: mood rejects differently tagged clothing",
+      !PRUI.canUseOutfit("cold coat", sceneVals, outfitLists, [], "mix", "tease"));
+    T("outfit reuse: matching tagged and untagged items are allowed",
+      PRUI.canUseOutfit("tease coat", sceneVals, outfitLists, [], "sfw", "tease") &&
+      PRUI.canUseOutfit("clean jacket", sceneVals, outfitLists, [], "sfw", "tease"));
+    T("outfit reuse: unknown legacy clothing remains compatible",
+      PRUI.canUseOutfit("saved custom outfit", sceneVals, outfitLists, [], "sfw", "any"));
+    var spicyScene = [{ name: "Spicy scene", x: 1,
+      values: Object.assign({}, sceneVals, { outfit: "preset-only outfit" }) }];
+    T("outfit reuse: SFW rejects clothing linked to a spicy scene",
+      !PRUI.canUseOutfit("preset-only outfit", sceneVals, outfitLists,
+        spicyScene, "sfw", "any") &&
+      PRUI.canUseOutfit("preset-only outfit", sceneVals, outfitLists,
+        spicyScene, "mix", "any"));
     return results;
   };
   window.__EOF = window.__EOF || {};
