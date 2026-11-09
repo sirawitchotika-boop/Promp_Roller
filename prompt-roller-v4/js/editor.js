@@ -129,7 +129,7 @@
         if(!raw){ window.PRUI.toast("type something first"); return; }
         var res = E.parseImport(raw, slot, s.lists, s.presets);
         if(res.blocked > 0){ alert("BLOCKED: Prohibited minors word!"); return; }
-        if(res.added > 0){
+        if(res.added > 0 || res.presetsAdded > 0){
           // Merge every #list: section found - multi-slot pastes no longer drop items (H3).
           Object.keys(res.itemsByList).forEach(function(k){ s.lists[k] = (s.lists[k]||[]).concat(res.itemsByList[k]); });
           if(res.presets && res.presets.length) s.presets = (s.presets||[]).concat(res.presets);

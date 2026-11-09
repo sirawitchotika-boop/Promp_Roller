@@ -47,16 +47,25 @@
     window.__tt = setTimeout(function(){ el.classList.remove("show"); }, 2000);
   }
 
+  function fallbackCopy(text, msg){
+    var ta = document.createElement("textarea"), copied = false;
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    try { ta.select(); copied = !!document.execCommand("copy"); } catch(e){}
+    document.body.removeChild(ta);
+    toast(copied ? (msg || "copied") : "Copy failed - select text manually");
+  }
+
   function copy(text, msg){
     if(!text) return;
     if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(function(){ toast(msg || "copied"); });
-    } else {
-      var ta = document.createElement("textarea");
-      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
-      document.body.appendChild(ta); ta.select(); document.execCommand("copy");
-      document.body.removeChild(ta); toast(msg || "copied");
-    }
+      try {
+        navigator.clipboard.writeText(text).then(
+          function(){ toast(msg || "copied"); },
+          function(){ fallbackCopy(text, msg); }
+        );
+      } catch(e){ fallbackCopy(text, msg); }
+    } else fallbackCopy(text, msg);
   }
 
   function applyPreset(preset){
