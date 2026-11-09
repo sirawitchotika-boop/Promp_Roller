@@ -15,9 +15,8 @@
   }
 
   function initStore(){
-    var raw = null;
-    try { raw = localStorage.getItem(STORAGE_KEY); } catch(e){}
-    if(raw){ try { S = JSON.parse(raw); } catch(e){ S = null; } }
+    var loaded = PRStorage.load();
+    if(loaded) S = loaded;
     if(!record(S) || !record(S.lists) || !Object.keys(S.lists).length){
       S = {
         mode: "mix", mood: "any", current: {}, locked: {}, custom: {},
@@ -46,8 +45,8 @@
     saveStore();
   }
 
-  function saveStore(){
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch(e){}
+  function saveStore(allowRestore){
+    return PRStorage.save(S, allowRestore === true);
   }
 
   function toast(msg){

@@ -28,6 +28,12 @@
     <div class="sub">Prompt Roller · Coherent Scenes · <span id="fileBadge" style="color:var(--dim)">loading files...</span></div>
   </header>
 
+  <div id="saveWarning" class="save-warning" role="alert" hidden>
+    <strong id="saveWarningTitle">Save warning</strong>
+    <p id="saveWarningText"></p>
+    <button type="button" class="btn sm" id="saveDownloadOriginal" hidden>Download original saved data</button>
+  </div>
+
   <div class="tabs" role="tablist" aria-label="Main views">
     <button type="button" role="tab" class="tab on" id="tab-roll"
       aria-controls="view-roll" aria-selected="true" tabindex="0" onclick="showTab('roll')">Roll</button>
@@ -137,6 +143,7 @@
   <script src="js/engine.js"></script>
   <script src="js/import.js"></script>
   <script src="js/backup.js"></script>
+  <script src="js/storage.js"></script>
   <script src="js/test.js"></script>
   <script src="js/test-preset.js"></script>
   <script src="js/test-filter.js"></script>

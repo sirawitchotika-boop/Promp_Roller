@@ -4,6 +4,12 @@
   var E = window.PREngine;
   // Retired scene slots stay in old backups; never silently drop them on export/import.
   var EXCHANGE_SLOTS = E.ALL_SLOTS.concat(["hands", "prop", "depth"]);
+  function validJsonPreset(p){
+    // Use the same legacy-compatible safety checks as backup restore.
+    return !!window.PRBackup && PRBackup.verify({
+      lists: { body: [] }, presets: [p]
+    }).ok;
+  }
 
   // #list: / #preset: / [G:] / [M:] / [NOTE:] line format -> item + preset objects.
   function parse(text, defaultSlot, existingLists, existingPresets){
@@ -38,11 +44,11 @@
         if(pRest.startsWith("{")){
           try {
             var pj = JSON.parse(pRest.replace(/,$/, ""));
-            if(pj && pj.name && pj.values){
+            if(validJsonPreset(pj)){
               var pk = pj.name.toLowerCase().trim();
               if(seenPresets[pk]){ duplicates++; }
               else { seenPresets[pk] = true; presets.push(pj); presetsAdded++; }
-            }
+            } else bad++;
           } catch(e){ bad++; }
           curPreset = null; continue;
         }
@@ -50,6 +56,7 @@
         var pName = pRest.replace(/^[!*]+/, "").trim();
         var pMood = PRRoll.parseMood(pName);
         if(pMood) pName = pMood.text; else pName = PRRoll.stripBadMood(pName);
+        if(!pName){ bad++; curPreset = null; continue; }
         var pk2 = pName.toLowerCase();
         if(seenPresets[pk2]){ duplicates++; curPreset = null; continue; }
         seenPresets[pk2] = true;
@@ -75,11 +82,11 @@
         if(E.checkMinors(line)){ blocked++; continue; }
         try {
           var pj2 = JSON.parse(line.replace(/,$/, ""));
-          if(pj2 && pj2.name && pj2.values){
+          if(validJsonPreset(pj2)){
             var pk3 = pj2.name.toLowerCase().trim();
             if(seenPresets[pk3]) duplicates++;
             else { seenPresets[pk3] = true; presets.push(pj2); presetsAdded++; }
-          }
+          } else bad++;
         } catch(e){ bad++; }
         continue;
       }
