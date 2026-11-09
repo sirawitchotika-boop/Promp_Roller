@@ -70,7 +70,7 @@ All **20 JavaScript files** load in the order listed in `index.html`. Each sets 
 6     engine                                       -> prompt and validation
 7–8   import, backup                               -> exchange and restore
 9–13  test, test-preset, test-filter, test-backup,
-      test-integration                             -> 87 regression checks (on demand)
+      test-integration                             -> 93 regression checks (on demand)
 14    ui                                           -> state and roll actions
 15    render                                       -> Roll tab display
 16    ask                                          -> Edit panel layouts
@@ -106,6 +106,7 @@ One shared pool filter (`PRRoll.filterPool`) feeds every roll path (Roll tab, si
 - **Subject + Copy:** rerolls Subject slots, leaving scene slots unchanged.
 - **Apply Preset:** loads four required scene values, plus linked Outfit when available. A conflicting lock rejects the entire apply.
 - **Individual dice:** change only the selected slot, using saved lists plus mode, mood and guard checks.
+- **Outfit filtering:** Subject and Roll All rerolls do not reuse a tagged linked Outfit that conflicts with the selected mode or mood. Manual edits and unknown legacy clothing are preserved.
 - **Compatibility:** old presets may omit Outfit; archived Hands, Prop and Depth are kept for backup and exchange, but not rolled.
 
 ### Item Object Schema
@@ -175,7 +176,7 @@ One screen for the whole AI round trip, sharing one slot dropdown:
 
 ## 5. Risk-Based Verification
 
-1. **Every code PR:** run the built-in 87-check self-test suite on throwaway data. Confirm the startup badge shows `file complete` (20 scripts).
+1. **Every code PR:** run the built-in 93-check self-test suite on throwaway data. Confirm the startup badge shows `file complete` (20 scripts).
 2. **Visible behavior changes:** check only the affected buttons on a phone. Use one or two short checks instead of a fixed six-step checklist.
 3. **Backup and saved-state changes:** download a full JSON backup first; test using disposable data and verify expected values survive.
 4. **Docs-only and unused-local cleanup:** no extra human gate is required.
