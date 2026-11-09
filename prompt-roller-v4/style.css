@@ -203,3 +203,12 @@ textarea:focus-visible, summary:focus-visible, .item .tx:focus-visible {
 .slot-edit-actions .btn { flex:1; min-height:48px; }
 .slot-edit-actions .btn:last-child { background:var(--acc); }
 @media (max-width:370px) { .slot-edit-body { padding:14px; } }
+
+/* --- UI-4B: quiet exit confirmation --- */
+.exit-dialog { width:min(calc(100% - 32px),460px); margin:auto; padding:20px;
+  border:1px solid #434159; border-radius:14px; background:var(--card); color:var(--txt); }
+.exit-dialog::backdrop { background:rgba(0,0,0,.72); }
+.exit-dialog h2 { font-size:18px; margin:0 0 8px; }
+.exit-dialog p { color:var(--dim); font-size:14px; line-height:1.5; }
+.exit-actions { margin:20px 0 0; flex-wrap:nowrap; }
+.exit-actions .btn { flex:1; min-height:48px; }
