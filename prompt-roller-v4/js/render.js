@@ -1,7 +1,7 @@
 // js/render.js - Roll Tab View Rendering (split from ui.js, v4.4 Day 3)
 // Reads state through PRUI.getState() at call time - owns no state itself.
 (function(){
-  var E = window.PREngine, lastRenderedScene = null;
+  var E = window.PREngine;
 
   function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
@@ -55,7 +55,6 @@
     var S = window.PRUI.getState();
     var sel = document.getElementById("presetSel");
     if(!sel) return;
-    var scene = E.SLOTS_SCENE.map(function(k){ return S.current[k] || ""; }).join("|");
     var oldValue = sel.value;
     var oldOption = sel.options && sel.options[sel.selectedIndex];
     var oldLabel = oldOption ? oldOption.textContent : "";
@@ -71,9 +70,12 @@
       if(matching === null && E.SLOTS_SCENE.every(function(k){ return p.values[k] === S.current[k]; }))
         matching = String(i);
     });
-    var chosen = scene === lastRenderedScene ? (previous || matching) : (matching || previous);
+    // The current scene wins over a stale dropdown choice.
+    var previousMatches = previous !== null && E.SLOTS_SCENE.every(function(k){
+      return S.presets[parseInt(previous, 10)].values[k] === S.current[k];
+    });
+    var chosen = previousMatches ? previous : (matching || previous);
     if(chosen !== null) sel.value = chosen;
-    lastRenderedScene = scene;
   }
 
   // Mood dropdown: "Any mood" + the 6 built-in moods + the saved mood if custom.
