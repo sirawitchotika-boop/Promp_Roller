@@ -9,6 +9,13 @@
     return "" + d.getFullYear() + p2(d.getMonth()+1) + p2(d.getDate()) + "-" + p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds());
   }
 
+  function downloadFile(content, type, filename){
+    var blob = new Blob([content], { type: type });
+    var url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+  }
+
   function wireExchange(s, applyImportResult){
     var slotSel = document.getElementById("exSlotSel");
     function curSlot(){ return slotSel.value || null; }
@@ -19,9 +26,8 @@
     document.getElementById("btnExDownload").onclick = function(){
       var slot = curSlot();
       var txt = E.exportText(s.lists, slot, s.presets);
-      var blob = new Blob([txt], { type: "text/plain" }), u = URL.createObjectURL(blob), a = document.createElement("a");
-      a.href = u; a.download = "prompt-roller-io-" + (slot || "all") + "-" + stamp() + ".txt"; a.click();
-      setTimeout(function(){ URL.revokeObjectURL(u); }, 1500);
+      downloadFile(txt, "text/plain",
+        "prompt-roller-io-" + (slot || "all") + "-" + stamp() + ".txt");
       window.PRUI.toast("downloaded " + (slot || "all"));
     };
     document.getElementById("btnExCopyReq").onclick = function(){
@@ -54,10 +60,8 @@
 
   function wireBackup(s, rerender){
     document.getElementById("btnDlBackup").onclick = function(){
-      var blob = new Blob([JSON.stringify(s, null, 2)], { type: "application/json" });
-      var u = URL.createObjectURL(blob), a = document.createElement("a");
-      a.href = u; a.download = "prompt-roller-backup-" + stamp() + ".json"; a.click();
-      setTimeout(function(){ URL.revokeObjectURL(u); }, 1500);
+      downloadFile(JSON.stringify(s, null, 2), "application/json",
+        "prompt-roller-backup-" + stamp() + ".json");
     };
     document.getElementById("btnPickBackup").onclick = function(){ document.getElementById("fileBackupIn").click(); };
     document.getElementById("fileBackupIn").onchange = function(ev){
