@@ -161,7 +161,9 @@
   }
   function rollScene(lists, mode, locked, current, mood, presets){
     var options = filterPool(presets || [], mode, mood).filter(function(p){
-      return p && p.values && CHAIN.every(function(slot){
+      var outfit = (p && p.values && p.values.outfit) || (p && DEFAULT_OUTFITS[p.name]) || "";
+      return p && p.values && (!locked || !locked.outfit || !outfit ||
+        outfit === ((current && current.outfit) || "")) && CHAIN.every(function(slot){
         return typeof p.values[slot] === "string" && !!p.values[slot].trim() &&
           (!locked || !locked[slot] || p.values[slot] === ((current && current[slot]) || ""));
       });
