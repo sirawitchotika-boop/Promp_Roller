@@ -119,7 +119,7 @@
     }
     T("mood: filter never returns a mismatched mood", moodOk);
     T("mood: untagged items still roll under a mood", E.pickSlot([{ t: "free item" }], "mix", "tease") === "free item");
-    T("mood: all-mismatch pool falls back (never dead)", E.pickSlot([{ t: "cold item", m: "cold" }], "mix", "tease") === "cold item");
+    T("mood: all-mismatch pool is empty", E.pickSlot([{ t: "cold item", m: "cold" }], "mix", "tease") === "");
     var comboImp = E.parseImport("#list: action\nher move [NOTE: keep] [G: in=indoor] [M: shy]\n");
     T("mood: NOTE + G + M on one line all parsed", comboImp.added === 1 && comboImp.itemsByList.action[0].m === "shy" && comboImp.itemsByList.action[0].g.in === "indoor" && comboImp.itemsByList.action[0].n === "keep" && comboImp.itemsByList.action[0].t === "her move");
 
