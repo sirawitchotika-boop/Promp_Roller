@@ -2,6 +2,8 @@
 // Depends on: PREngine (checkMinors, slot lists) + PRRoll (tag parsing) - both loaded earlier.
 (function(){
   var E = window.PREngine;
+  // Retired scene slots stay in old backups; never silently drop them on export/import.
+  var EXCHANGE_SLOTS = E.ALL_SLOTS.concat(["hands", "prop", "depth"]);
 
   // #list: / #preset: / [G:] / [M:] / [NOTE:] line format -> item + preset objects.
   function parse(text, defaultSlot, existingLists, existingPresets){
@@ -61,8 +63,8 @@
       if(mHeader){
         curPreset = null; inPresetsBlock = false;
         var rawName = mHeader[1].toLowerCase(), matched = null;
-        for(var sIdx = 0; sIdx < E.ALL_SLOTS.length; sIdx++){
-          if(E.ALL_SLOTS[sIdx].toLowerCase() === rawName){ matched = E.ALL_SLOTS[sIdx]; break; }
+        for(var sIdx = 0; sIdx < EXCHANGE_SLOTS.length; sIdx++){
+          if(EXCHANGE_SLOTS[sIdx].toLowerCase() === rawName){ matched = EXCHANGE_SLOTS[sIdx]; break; }
         }
         curList = matched;
         if(!matched) bad++;
@@ -123,7 +125,7 @@
 
   // Lists + presets -> #list: / #preset: text (round-trips with parse).
   function exportText(lists, singleSlot, presets){
-    var out = [], keys = singleSlot ? [singleSlot] : E.ALL_SLOTS;
+    var out = [], keys = singleSlot ? [singleSlot] : EXCHANGE_SLOTS;
     keys.forEach(function(k){
       out.push("#list: " + k);
       (lists[k] || []).forEach(function(it){

@@ -8,6 +8,12 @@
 > Existing imported presets without outfits retain the current outfit.
 > If locked slots exclude every preset, the roll leaves the scene unchanged.
 > The legacy architecture below is retained for reference.
+>
+> **Backup and exchange update:** Exchange → Export All now includes archived
+> Hands, Prop and Depth lists, and importing that text restores those inactive
+> lists without reactivating the rollers. Use Backup → Download JSON to preserve
+> the full state, including locks and current choices. Restore checks the JSON
+> structure before replacing data; invalid backup files leave saved data unchanged.
 
 Mobile-first AI Image Prompt Roller.
 Designed for 100% offline execution on Android (Spck Editor / Chrome) and static hosting (GitHub Pages, auto-deploy on push to main).

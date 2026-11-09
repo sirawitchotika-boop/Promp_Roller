@@ -66,10 +66,8 @@
       r.onload = function(evt){
         try {
           var parsed = JSON.parse(evt.target.result);
-          // Pre-hooktail backups carry no hook/tail key - drop the stale ones so seed() restores defaults.
-          if(parsed && parsed.hook === undefined) delete s.hook;
-          if(parsed && parsed.tail === undefined) delete s.tail;
-          Object.assign(s, parsed);
+          var restore = window.PRBackup.restore(parsed, s);
+          if(!restore.ok){ alert(restore.error); return; }
           window.PRUI.saveStore();
           if(window.PRHookTail) window.PRHookTail.seed();
           window.PRUI.renderAll(); rerender(); alert("Backup restored!");
