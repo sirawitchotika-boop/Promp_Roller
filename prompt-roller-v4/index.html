@@ -72,8 +72,23 @@
   </main>
 
   <main id="view-edit" style="display:none">
-    <div class="card">
-      <select id="editSel" onchange="PREdit.render()"></select>
+    <nav class="edit-nav" aria-label="Edit sections">
+      <button type="button" data-edit-panel="vocabulary" aria-pressed="true">Vocabulary</button>
+      <button type="button" data-edit-panel="scenes" aria-pressed="false">Scenes</button>
+      <button type="button" data-edit-panel="exchange" aria-pressed="false">Exchange</button>
+      <button type="button" data-edit-panel="tools" aria-pressed="false">Tools</button>
+    </nav>
+    <div class="card edit-workspace">
+      <div id="editSlotWrap" class="edit-slot-wrap">
+        <label for="editSel">Choose a list to edit</label>
+        <select id="editSel" onchange="PREdit.render()"></select>
+      </div>
+      <div id="editTools" class="edit-tools" aria-label="Advanced tools" hidden>
+        <button type="button" data-edit-tool="__overview" aria-pressed="true">Inventory</button>
+        <button type="button" data-edit-tool="__hooktail" aria-pressed="false">Hook &amp; Tail</button>
+        <button type="button" data-edit-tool="__backup" aria-pressed="false">Backup</button>
+        <button type="button" data-edit-tool="__test" aria-pressed="false">Self-test</button>
+      </div>
       <div id="editorBox" style="margin-top:12px"></div>
     </div>
   </main>
